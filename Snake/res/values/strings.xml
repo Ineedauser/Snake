@@ -3,6 +3,9 @@
 
     <string name="app_name">Snake</string>
     <string name="menu_settings">Settings</string>
-    <string name="hello_world">Hello Pavo!</string>
+    <string name="welcomeMessage">Welcome to Snake game!</string>
+    <string name="selectServerOrClient">To continue please select Your device\'s role in the team!</string>
+    <string name="imServer">I want to be a server!</string>
+    <string name="imUser">I want to join an existing game!</string>
 
 </resources>
