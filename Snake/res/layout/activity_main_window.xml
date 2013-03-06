@@ -28,13 +28,19 @@
         android:src="@drawable/ic_launcher" />
 
     <Button
-        android:id="@+id/button1"
+        android:id="@+id/testButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="testButton" />
+
+    <Button
+        android:id="@+id/serverSelectedButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/imServer" />
 
     <Button
-        android:id="@+id/button2"
+        android:id="@+id/clientSelectedButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/imUser" />
