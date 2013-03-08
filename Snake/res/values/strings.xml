@@ -7,5 +7,8 @@
     <string name="selectServerOrClient">To continue please select Your device\'s role in the team!</string>
     <string name="imServer">I want to be a server!</string>
     <string name="imUser">I want to join an existing game!</string>
+    <string name="title_activity_game_screen">GameScreen</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
 
 </resources>
