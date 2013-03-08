@@ -1,11 +1,15 @@
 package com.szofttech.snake;
 
+import com.szofttech.snake.GameScreen;
 import com.larvalabs.svgandroid.SVG;
 import com.larvalabs.svgandroid.SVGParser;
 
 import android.os.Bundle;
 import android.app.Activity;
+import android.content.Intent;
 import android.view.Menu;
+import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 
 public class MainWindow extends Activity {
@@ -18,6 +22,20 @@ public class MainWindow extends Activity {
         ImageView image=(ImageView)findViewById(R.id.startImage);
         SVG svg = SVGParser.getSVGFromResource(getResources(), R.raw.snake);
         image.setImageDrawable(svg.createPictureDrawable());
+        
+        Button testButton=(Button)findViewById(R.id.testButton);
+        
+        //MainWindow windowReference = this;
+        testButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                // Perform action on click
+            	Intent intent = new Intent(getBaseContext(), GameScreen.class);
+            	startActivity(intent);
+            }
+        });
+
+        
+        
     }
  
     @Override
