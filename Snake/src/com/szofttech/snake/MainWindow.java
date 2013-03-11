@@ -25,6 +25,7 @@ public class MainWindow extends Activity {
         
         Button testButton=(Button)findViewById(R.id.testButton);
         
+        
         //MainWindow windowReference = this;
         testButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
