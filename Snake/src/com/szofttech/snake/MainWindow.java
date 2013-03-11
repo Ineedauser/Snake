@@ -20,6 +20,8 @@ public class MainWindow extends Activity {
         setContentView(R.layout.activity_main_window);
         
         ImageView image=(ImageView)findViewById(R.id.startImage);
+        //Disable hardware acceleration for drawing the image
+        image.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
         SVG svg = SVGParser.getSVGFromResource(getResources(), R.raw.snake);
         image.setImageDrawable(svg.createPictureDrawable());
         
