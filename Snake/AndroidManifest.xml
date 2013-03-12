@@ -5,8 +5,12 @@
     android:versionName="1.0" >
 
     <uses-sdk
-        android:minSdkVersion="11"
+        android:minSdkVersion="14"
         android:targetSdkVersion="17" />
+    
+    <uses-feature
+        android:glEsVersion="0x00020000"
+        android:required="true" />
 
     <application
         android:allowBackup="true"
@@ -26,7 +30,7 @@
             android:name="com.szofttech.snake.GameScreen"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_game_screen"
-            android:theme="@style/FullscreenTheme">
+            android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
         </activity>
     </application>
 
