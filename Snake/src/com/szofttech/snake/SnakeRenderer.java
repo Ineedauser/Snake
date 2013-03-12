@@ -1,5 +1,6 @@
 package com.szofttech.snake;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
@@ -7,6 +8,7 @@ import java.nio.FloatBuffer;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
+import android.content.Context;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
@@ -62,11 +64,13 @@ public class SnakeRenderer implements GLSurfaceView.Renderer {
 	
 	/** Size of the color data in elements. */
 	private final int mColorDataSize = 4;		
+	
+	private final Context appContext;
 				
 	/**
 	 * Initialize the model data.
 	 */
-	public SnakeRenderer()
+	public SnakeRenderer(final Context appContext)
 	{	
 		// Define points for equilateral triangles.
 		
@@ -120,6 +124,94 @@ public class SnakeRenderer implements GLSurfaceView.Renderer {
 		mTriangle1Vertices.put(triangle1VerticesData).position(0);
 		mTriangle2Vertices.put(triangle2VerticesData).position(0);
 		mTriangle3Vertices.put(triangle3VerticesData).position(0);
+		
+		this.appContext=appContext;
+	}
+	
+	/**
+	 * Create and compile a new vertex shader.
+	 * 
+	 * @param source the source code of the vertex shader
+	 * @return the handle of the vertex shader.
+	 * 
+	 */
+	int createVertexShader(final String source){
+		int vertexShaderHandle = GLES20.glCreateShader(GLES20.GL_VERTEX_SHADER);
+
+		if (vertexShaderHandle != 0){
+			GLES20.glShaderSource(vertexShaderHandle, source);
+			GLES20.glCompileShader(vertexShaderHandle);
+
+			// Get the compilation status.
+			final int[] compileStatus = new int[1];
+			GLES20.glGetShaderiv(vertexShaderHandle, GLES20.GL_COMPILE_STATUS, compileStatus, 0);
+
+			// If the compilation failed, delete the shader.
+			if (compileStatus[0] == 0){				
+				GLES20.glDeleteShader(vertexShaderHandle);
+				vertexShaderHandle = 0;
+			}
+		}
+
+		if (vertexShaderHandle == 0){
+			throw new RuntimeException("Error creating vertex shader.");
+		}
+		
+		return vertexShaderHandle;
+	}
+	
+	int createVertexShader(final Context context, final int resourceId){
+		String source;
+		try {
+			source = Helpers.readTextFileFromRawResource(context, resourceId);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			throw new RuntimeException("Error loading vertex shader from resource.");			
+		}
+		return createVertexShader(source);
+	}
+	
+	
+	/**
+	 * Create and compile a new fragment shader.
+	 * 
+	 * @param source the source code of the fragment shader
+	 * @return the handle of the fragment shader.
+	 * 
+	 */
+	int createFragmentShader(final String source){
+		int fragmentShaderHandle = GLES20.glCreateShader(GLES20.GL_FRAGMENT_SHADER);
+
+		if (fragmentShaderHandle != 0) {
+			GLES20.glShaderSource(fragmentShaderHandle, source);
+			GLES20.glCompileShader(fragmentShaderHandle);
+
+			// Get the compilation status.
+			final int[] compileStatus = new int[1];
+			GLES20.glGetShaderiv(fragmentShaderHandle, GLES20.GL_COMPILE_STATUS, compileStatus, 0);
+
+			if (compileStatus[0] == 0){				
+				GLES20.glDeleteShader(fragmentShaderHandle);
+				fragmentShaderHandle = 0;
+			}
+		}
+
+		if (fragmentShaderHandle == 0){
+			throw new RuntimeException("Error creating fragment shader.");
+		}
+		
+		return fragmentShaderHandle;
+	}
+	
+	int createFragmentShader(final Context context, final int resourceId){
+		String source;
+		try {
+			source = Helpers.readTextFileFromRawResource(context, resourceId);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			throw new RuntimeException("Error loading fragment shader from resource.");			
+		}
+		return createFragmentShader(source);
 	}
 	
 	@Override
@@ -148,87 +240,10 @@ public class SnakeRenderer implements GLSurfaceView.Renderer {
 		// view matrix. In OpenGL 2, we can keep track of these matrices separately if we choose.
 		Matrix.setLookAtM(mViewMatrix, 0, eyeX, eyeY, eyeZ, lookX, lookY, lookZ, upX, upY, upZ);
 
-		final String vertexShader =
-			"uniform mat4 u_MVPMatrix;      \n"		// A constant representing the combined model/view/projection matrix.
-			
-		  + "attribute vec4 a_Position;     \n"		// Per-vertex position information we will pass in.
-		  + "attribute vec4 a_Color;        \n"		// Per-vertex color information we will pass in.			  
-		  
-		  + "varying vec4 v_Color;          \n"		// This will be passed into the fragment shader.
-		  
-		  + "void main()                    \n"		// The entry point for our vertex shader.
-		  + "{                              \n"
-		  + "   v_Color = a_Color;          \n"		// Pass the color through to the fragment shader. 
-		  											// It will be interpolated across the triangle.
-		  + "   gl_Position = u_MVPMatrix   \n" 	// gl_Position is a special variable used to store the final position.
-		  + "               * a_Position;   \n"     // Multiply the vertex by the matrix to get the final point in 			                                            			 
-		  + "}                              \n";    // normalized screen coordinates.
 		
-		final String fragmentShader =
-			"precision mediump float;       \n"		// Set the default precision to medium. We don't need as high of a 
-													// precision in the fragment shader.				
-		  + "varying vec4 v_Color;          \n"		// This is the color from the vertex shader interpolated across the 
-		  											// triangle per fragment.			  
-		  + "void main()                    \n"		// The entry point for our fragment shader.
-		  + "{                              \n"
-		  + "   gl_FragColor = v_Color;     \n"		// Pass the color directly through the pipeline.		  
-		  + "}                              \n";												
+		int vertexShaderHandle=createVertexShader(appContext, R.raw.test_vert);
+		int fragmentShaderHandle=createFragmentShader(appContext, R.raw.test_frag);
 		
-		// Load in the vertex shader.
-		int vertexShaderHandle = GLES20.glCreateShader(GLES20.GL_VERTEX_SHADER);
-
-		if (vertexShaderHandle != 0) 
-		{
-			// Pass in the shader source.
-			GLES20.glShaderSource(vertexShaderHandle, vertexShader);
-
-			// Compile the shader.
-			GLES20.glCompileShader(vertexShaderHandle);
-
-			// Get the compilation status.
-			final int[] compileStatus = new int[1];
-			GLES20.glGetShaderiv(vertexShaderHandle, GLES20.GL_COMPILE_STATUS, compileStatus, 0);
-
-			// If the compilation failed, delete the shader.
-			if (compileStatus[0] == 0) 
-			{				
-				GLES20.glDeleteShader(vertexShaderHandle);
-				vertexShaderHandle = 0;
-			}
-		}
-
-		if (vertexShaderHandle == 0)
-		{
-			throw new RuntimeException("Error creating vertex shader.");
-		}
-		
-		// Load in the fragment shader shader.
-		int fragmentShaderHandle = GLES20.glCreateShader(GLES20.GL_FRAGMENT_SHADER);
-
-		if (fragmentShaderHandle != 0) 
-		{
-			// Pass in the shader source.
-			GLES20.glShaderSource(fragmentShaderHandle, fragmentShader);
-
-			// Compile the shader.
-			GLES20.glCompileShader(fragmentShaderHandle);
-
-			// Get the compilation status.
-			final int[] compileStatus = new int[1];
-			GLES20.glGetShaderiv(fragmentShaderHandle, GLES20.GL_COMPILE_STATUS, compileStatus, 0);
-
-			// If the compilation failed, delete the shader.
-			if (compileStatus[0] == 0) 
-			{				
-				GLES20.glDeleteShader(fragmentShaderHandle);
-				fragmentShaderHandle = 0;
-			}
-		}
-
-		if (fragmentShaderHandle == 0)
-		{
-			throw new RuntimeException("Error creating fragment shader.");
-		}
 		
 		// Create a program object and store the handle to it.
 		int programHandle = GLES20.glCreateProgram();

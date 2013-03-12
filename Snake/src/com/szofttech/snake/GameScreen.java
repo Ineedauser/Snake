@@ -4,12 +4,7 @@ import android.app.Activity;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 
-/**
- * An example full-screen activity that shows and hides the system UI (i.e.
- * status bar and navigation/system bar) with user interaction.
- * 
- * @see SystemUiHider
- */
+
 public class GameScreen extends Activity {	
 	private GLSurfaceView openglSurface;
 
@@ -19,7 +14,7 @@ public class GameScreen extends Activity {
 
 		openglSurface = new GLSurfaceView(this);
 		openglSurface.setEGLContextClientVersion(2);
-		openglSurface.setRenderer(new SnakeRenderer());
+		openglSurface.setRenderer(new SnakeRenderer(getBaseContext()));
 
 		setContentView(openglSurface);
 	}
