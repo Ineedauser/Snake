@@ -12,7 +12,7 @@ public class GameScreen extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
-		SnakeRenderer renderer=new SnakeRenderer(getBaseContext());
+		SnakeRenderer renderer=new SnakeRenderer();
 		Grid g=new Grid(getBaseContext());
 		renderer.addRenderable(g);
 		

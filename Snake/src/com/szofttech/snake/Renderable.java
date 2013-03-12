@@ -29,9 +29,11 @@ public abstract class Renderable{
 	
 	public abstract void init();
 	public abstract void useProgram();	
-	public abstract void render(long time);
+	public abstract void renderPrepare(long time);
+	public abstract void render();
 	
 	public abstract void resize(int h, int w);
+	
 	public float [] getModelMatrix(){
 		return modelMatrix;
 	}

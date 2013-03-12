@@ -58,12 +58,6 @@ public class Shader {
 		buildShader(type, source);
 	}
 	
-	protected void finalize() throws Throwable {
-		if (shaderHandle!=0){
-			Log.e("SNAKE ------------", "Finalize shader");
-			GLES20.glDeleteShader(shaderHandle);
-		}
-	}
 	
 	int getHandle(){
 		return shaderHandle;
