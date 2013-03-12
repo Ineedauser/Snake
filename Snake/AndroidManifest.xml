@@ -28,6 +28,7 @@
         </activity>
         <activity
             android:name="com.szofttech.snake.GameScreen"
+            android:screenOrientation="portrait"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_game_screen"
             android:theme="@android:style/Theme.NoTitleBar.Fullscreen">

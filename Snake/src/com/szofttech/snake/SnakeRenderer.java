@@ -1,9 +1,7 @@
 package com.szofttech.snake;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.FloatBuffer;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -13,13 +11,14 @@ import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 import android.os.SystemClock;
+import android.util.Log;
 
 public class SnakeRenderer implements GLSurfaceView.Renderer {
 	/**
 	 * Store the model matrix. This matrix is used to move models from object space (where each model can be thought
 	 * of being located at the center of the universe) to world space.
 	 */
-	private float[] mModelMatrix = new float[16];
+	//private float[] mModelMatrix = new float[16];
 
 	/**
 	 * Store the view matrix. This can be thought of as our camera. This matrix transforms world space to eye space;
@@ -34,44 +33,56 @@ public class SnakeRenderer implements GLSurfaceView.Renderer {
 	private float[] mMVPMatrix = new float[16];
 	
 	/** Store our model data in a float buffer. */
-	private final FloatBuffer mTriangle1Vertices;
-	private final FloatBuffer mTriangle2Vertices;
-	private final FloatBuffer mTriangle3Vertices;
+//	private final FloatBuffer mTriangle1Vertices;
+//	private final FloatBuffer mTriangle2Vertices;
+//	private final FloatBuffer mTriangle3Vertices;
 
 	/** This will be used to pass in the transformation matrix. */
-	private int mMVPMatrixHandle;
+	//private int mMVPMatrixHandle;
 	
 	/** This will be used to pass in model position information. */
-	private int mPositionHandle;
+//	private int mPositionHandle;
 	
 	/** This will be used to pass in model color information. */
-	private int mColorHandle;
+//	private int mColorHandle;
 
 	/** How many bytes per float. */
-	private final int mBytesPerFloat = 4;
+//	private final int mBytesPerFloat = 4;
 	
 	/** How many elements per vertex. */
-	private final int mStrideBytes = 7 * mBytesPerFloat;	
+//	private final int mStrideBytes = 7 * mBytesPerFloat;	
 	
 	/** Offset of the position data. */
-	private final int mPositionOffset = 0;
+//	private final int mPositionOffset = 0;
 	
 	/** Size of the position data in elements. */
-	private final int mPositionDataSize = 3;
+//	private final int mPositionDataSize = 3;
 	
 	/** Offset of the color data. */
-	private final int mColorOffset = 3;
+//	private final int mColorOffset = 3;
 	
 	/** Size of the color data in elements. */
-	private final int mColorDataSize = 4;		
+//	private final int mColorDataSize = 4;		
 	
 	private final Context appContext;
+	
+	private ArrayList<Renderable> objectList;
+	
+	public void addRenderable(Renderable object){
+		objectList.add(object);
+	}
+	
+	public void removeRenderable(Renderable object){
+		objectList.remove(object);
+	}
 				
 	/**
 	 * Initialize the model data.
 	 */
 	public SnakeRenderer(final Context appContext)
-	{	
+	{
+		objectList=new ArrayList<Renderable>();
+		/*
 		// Define points for equilateral triangles.
 		
 		// This triangle is red, green, and blue.
@@ -123,130 +134,19 @@ public class SnakeRenderer implements GLSurfaceView.Renderer {
 					
 		mTriangle1Vertices.put(triangle1VerticesData).position(0);
 		mTriangle2Vertices.put(triangle2VerticesData).position(0);
-		mTriangle3Vertices.put(triangle3VerticesData).position(0);
+		mTriangle3Vertices.put(triangle3VerticesData).position(0);*/
 		
 		this.appContext=appContext;
 	}
 	
-	/**
-	 * Create and compile a new vertex shader.
-	 * 
-	 * @param source the source code of the vertex shader
-	 * @return the handle of the vertex shader.
-	 * 
-	 */
-	int createVertexShader(final String source){
-		int vertexShaderHandle = GLES20.glCreateShader(GLES20.GL_VERTEX_SHADER);
-
-		if (vertexShaderHandle != 0){
-			GLES20.glShaderSource(vertexShaderHandle, source);
-			GLES20.glCompileShader(vertexShaderHandle);
-
-			// Get the compilation status.
-			final int[] compileStatus = new int[1];
-			GLES20.glGetShaderiv(vertexShaderHandle, GLES20.GL_COMPILE_STATUS, compileStatus, 0);
-
-			// If the compilation failed, delete the shader.
-			if (compileStatus[0] == 0){				
-				GLES20.glDeleteShader(vertexShaderHandle);
-				vertexShaderHandle = 0;
-			}
-		}
-
-		if (vertexShaderHandle == 0){
-			throw new RuntimeException("Error creating vertex shader.");
-		}
-		
-		return vertexShaderHandle;
-	}
-	
-	int createVertexShader(final Context context, final int resourceId){
-		String source;
-		try {
-			source = Helpers.readTextFileFromRawResource(context, resourceId);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			throw new RuntimeException("Error loading vertex shader from resource.");			
-		}
-		return createVertexShader(source);
-	}
 	
 	
-	/**
-	 * Create and compile a new fragment shader.
-	 * 
-	 * @param source the source code of the fragment shader
-	 * @return the handle of the fragment shader.
-	 * 
-	 */
-	int createFragmentShader(final String source){
-		int fragmentShaderHandle = GLES20.glCreateShader(GLES20.GL_FRAGMENT_SHADER);
-
-		if (fragmentShaderHandle != 0) {
-			GLES20.glShaderSource(fragmentShaderHandle, source);
-			GLES20.glCompileShader(fragmentShaderHandle);
-
-			// Get the compilation status.
-			final int[] compileStatus = new int[1];
-			GLES20.glGetShaderiv(fragmentShaderHandle, GLES20.GL_COMPILE_STATUS, compileStatus, 0);
-
-			if (compileStatus[0] == 0){				
-				GLES20.glDeleteShader(fragmentShaderHandle);
-				fragmentShaderHandle = 0;
-			}
-		}
-
-		if (fragmentShaderHandle == 0){
-			throw new RuntimeException("Error creating fragment shader.");
-		}
-		
-		return fragmentShaderHandle;
-	}
-	
-	int createFragmentShader(final Context context, final int resourceId){
-		String source;
-		try {
-			source = Helpers.readTextFileFromRawResource(context, resourceId);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			throw new RuntimeException("Error loading fragment shader from resource.");			
-		}
-		return createFragmentShader(source);
-	}
-	
-	@Override
-	public void onSurfaceCreated(GL10 glUnused, EGLConfig config) 
-	{
-		// Set the background clear color to gray.
-		GLES20.glClearColor(0.5f, 0.5f, 0.5f, 0.5f);
-	
-		// Position the eye behind the origin.
-		final float eyeX = 0.0f;
-		final float eyeY = 0.0f;
-		final float eyeZ = 1.5f;
-
-		// We are looking toward the distance
-		final float lookX = 0.0f;
-		final float lookY = 0.0f;
-		final float lookZ = -5.0f;
-
-		// Set our up vector. This is where our head would be pointing were we holding the camera.
-		final float upX = 0.0f;
-		final float upY = 1.0f;
-		final float upZ = 0.0f;
-
-		// Set the view matrix. This matrix can be said to represent the camera position.
-		// NOTE: In OpenGL 1, a ModelView matrix is used, which is a combination of a model and
-		// view matrix. In OpenGL 2, we can keep track of these matrices separately if we choose.
-		Matrix.setLookAtM(mViewMatrix, 0, eyeX, eyeY, eyeZ, lookX, lookY, lookZ, upX, upY, upZ);
-
-		
-		int vertexShaderHandle=createVertexShader(appContext, R.raw.test_vert);
-		int fragmentShaderHandle=createFragmentShader(appContext, R.raw.test_frag);
-		
-		
+	/*int createProgramTest(){
 		// Create a program object and store the handle to it.
 		int programHandle = GLES20.glCreateProgram();
+		
+		int vertexShaderHandle=createVertexShader(R.raw.test_vert);
+		int fragmentShaderHandle=createFragmentShader(R.raw.test_frag);
 		
 		if (programHandle != 0) 
 		{
@@ -279,6 +179,39 @@ public class SnakeRenderer implements GLSurfaceView.Renderer {
 		{
 			throw new RuntimeException("Error creating program.");
 		}
+		
+		return programHandle;
+	}*/
+	
+	@Override
+	public void onSurfaceCreated(GL10 glUnused, EGLConfig config) {
+		// Set the background clear color to gray.
+		GLES20.glClearColor(0.5f, 0.5f, 0.5f, 0.5f);
+	
+		// Position the eye behind the origin.
+		final float eyeX = 0.0f;
+		final float eyeY = 0.0f;
+		final float eyeZ = 1.5f;
+
+		// We are looking toward the distance
+		final float lookX = 0.0f;
+		final float lookY = 0.0f;
+		final float lookZ = -5.0f;
+
+		// Set our up vector. This is where our head would be pointing were we holding the camera.
+		final float upX = 0.0f;
+		final float upY = 1.0f;
+		final float upZ = 0.0f;
+
+		// Set the view matrix. This matrix can be said to represent the camera position.
+		// NOTE: In OpenGL 1, a ModelView matrix is used, which is a combination of a model and
+		// view matrix. In OpenGL 2, we can keep track of these matrices separately if we choose.
+		Matrix.setLookAtM(mViewMatrix, 0, eyeX, eyeY, eyeZ, lookX, lookY, lookZ, upX, upY, upZ);
+
+		
+		
+		
+		/*int programHandle=createProgramTest();
         
         // Set program handles. These will later be used to pass in values to the program.
         mMVPMatrixHandle = GLES20.glGetUniformLocation(programHandle, "u_MVPMatrix");        
@@ -286,7 +219,13 @@ public class SnakeRenderer implements GLSurfaceView.Renderer {
         mColorHandle = GLES20.glGetAttribLocation(programHandle, "a_Color");        
         
         // Tell OpenGL to use this program when rendering.
-        GLES20.glUseProgram(programHandle);        
+        GLES20.glUseProgram(programHandle);   */   
+		
+		Iterator<Renderable> itr = objectList.iterator();
+        while(itr.hasNext()){
+        	Renderable obj=itr.next();
+        	obj.init();
+        }
 	}	
 	
 	@Override
@@ -305,6 +244,8 @@ public class SnakeRenderer implements GLSurfaceView.Renderer {
 		final float near = 1.0f;
 		final float far = 10.0f;
 		
+		Log.wtf("SNAKE", "Resizing: W="+width+" H="+height);
+		
 		Matrix.frustumM(mProjectionMatrix, 0, left, right, bottom, top, near, far);
 	}	
 
@@ -314,7 +255,26 @@ public class SnakeRenderer implements GLSurfaceView.Renderer {
 		GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);			        
                 
         // Do a complete rotation every 10 seconds.
-        long time = SystemClock.uptimeMillis() % 10000L;
+        long time = SystemClock.uptimeMillis();
+        
+        
+        Iterator<Renderable> itr = objectList.iterator();
+        while(itr.hasNext()){
+        	Renderable obj=itr.next();
+        	
+        	obj.useProgram();
+        	
+        	int mvpHandle=obj.getMVPMatrixHandle();
+        	
+    		Matrix.multiplyMM(mMVPMatrix, 0, mViewMatrix, 0, obj.getModelMatrix(), 0);
+    		Matrix.multiplyMM(mMVPMatrix, 0, mProjectionMatrix, 0, mMVPMatrix, 0);
+    		GLES20.glUniformMatrix4fv(mvpHandle, 1, false, mMVPMatrix, 0);
+    		
+        	obj.render(time); 
+        }
+        
+        
+        /*
         float angleInDegrees = (360.0f / 10000.0f) * ((int) time);
         
         // Draw the triangle facing straight on.
@@ -334,7 +294,7 @@ public class SnakeRenderer implements GLSurfaceView.Renderer {
         Matrix.translateM(mModelMatrix, 0, 1.0f, 0.0f, 0.0f);
         Matrix.rotateM(mModelMatrix, 0, 90.0f, 0.0f, 1.0f, 0.0f);
         Matrix.rotateM(mModelMatrix, 0, angleInDegrees, 0.0f, 0.0f, 1.0f);
-        drawTriangle(mTriangle3Vertices);
+        drawTriangle(mTriangle3Vertices);*/
 	}	
 	
 	/**
@@ -342,7 +302,7 @@ public class SnakeRenderer implements GLSurfaceView.Renderer {
 	 * 
 	 * @param aTriangleBuffer The buffer containing the vertex data.
 	 */
-	private void drawTriangle(final FloatBuffer aTriangleBuffer)
+	/*private void drawTriangle(final FloatBuffer aTriangleBuffer)
 	{		
 		// Pass in the position information
 		aTriangleBuffer.position(mPositionOffset);
@@ -368,6 +328,6 @@ public class SnakeRenderer implements GLSurfaceView.Renderer {
 
         GLES20.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, mMVPMatrix, 0);
         GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 3);                               
-	}
+	}*/
 
 }

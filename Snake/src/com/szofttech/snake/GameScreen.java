@@ -11,10 +11,15 @@ public class GameScreen extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
+		SnakeRenderer renderer=new SnakeRenderer(getBaseContext());
+		Grid g=new Grid(getBaseContext());
+		renderer.addRenderable(g);
+		
 
 		openglSurface = new GLSurfaceView(this);
 		openglSurface.setEGLContextClientVersion(2);
-		openglSurface.setRenderer(new SnakeRenderer(getBaseContext()));
+		openglSurface.setRenderer(renderer);
 
 		setContentView(openglSurface);
 	}
