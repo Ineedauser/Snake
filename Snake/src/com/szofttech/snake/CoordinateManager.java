@@ -1,5 +1,6 @@
 package com.szofttech.snake;
 
+import android.graphics.Point;
 import android.graphics.PointF;
 import android.graphics.RectF;
 
@@ -45,7 +46,7 @@ public class CoordinateManager {
 			left=-(float)boardSizeBigger/2.0f;
 			leftWithOffset=left;
 			bottom=left*ratio;
-			bottomWithOffset=bottom*sceneRatio;
+			bottomWithOffset=left*sceneRatio;
 		}
 	}
 	
@@ -61,11 +62,19 @@ public class CoordinateManager {
 		caclulate();
 	}
 	
-	RectF getOpenGLBoundaries(){
+	public RectF getOpenGLBoundaries(){
 		return new RectF(left, -bottom, -left, bottom);
 	}
 	
-	PointF getCellCorner(int x, int y){
+	public RectF getMapBoundaries(){
+		return new RectF(leftWithOffset, -bottomWithOffset, -leftWithOffset, bottomWithOffset);
+	}
+	
+	public PointF getCellCorner(int x, int y){
 		return new PointF(leftWithOffset+x, bottomWithOffset+y);
+	}
+	
+	public Point getMapDimensions(){
+		return new Point(boardSizeBigger, boardSizeSmaller);
 	}
 }

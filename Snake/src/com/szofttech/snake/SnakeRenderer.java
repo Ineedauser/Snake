@@ -72,6 +72,9 @@ public class SnakeRenderer implements GLSurfaceView.Renderer {
         	Renderable obj=itr.next();
         	obj.init();
         }
+        
+        GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
+        GLES20.glEnable(GLES20.GL_BLEND);
 	}	
 	
 	@Override
@@ -124,7 +127,10 @@ public class SnakeRenderer implements GLSurfaceView.Renderer {
 	@Override
 	public void onDrawFrame(GL10 glUnused) 
 	{
-		GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);			        
+		GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT );
+		
+		// GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D,
+         //        GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
                 
         // Do a complete rotation every 10 seconds.
         long time = SystemClock.uptimeMillis();

@@ -3,8 +3,12 @@ package com.szofttech.snake;
 import java.nio.FloatBuffer;
 
 import android.content.Context;
+import android.graphics.Point;
+import android.graphics.PointF;
+import android.graphics.RectF;
 import android.opengl.GLES20;
 import android.opengl.Matrix;
+import android.util.Log;
 
 public class Grid extends Renderable{
 	
@@ -15,41 +19,71 @@ public class Grid extends Renderable{
 	int mvpMatrixHandle;
 	int positionHandle;
 	int colorHandle;
+	int nLines;
 	
-	private final int POS_OFFSET = 0;
-	private final int COLOR_OFFSET = 3;
-	private final int POS_SIZE = 3;
-	private final int COLOR_SIZE = 4;
-	private final int STRIDE = 7 * BYTES_PER_FLOAT;
 	
+	private final int POS_SIZE = 2;
+	private final int STRIDE = 2 * BYTES_PER_FLOAT;
+	private final int FLOATS_PER_LINE = 4;
 	
 
 	public Grid(Context appContext) {
 		super(appContext);
+		vertexData=null;
+	}
+	
+	void buildVertexData(){
+		CoordinateManager cm=CoordinateManager.getInstance();
+		Point mapDimensions=cm.getMapDimensions();
+		PointF bottomLeft=cm.getCellCorner(0, 0);
+		RectF mapBoundaries=cm.getMapBoundaries();
 		
-		final float[] triangle1VerticesData = {
-				// X, Y, Z, 
-				// R, G, B, A
-	            10.0f, 0.0f, 0.0f, 
-	            1.0f, 0.0f, 0.0f, 1.0f,
-	            
-	            -10.0f, 0.0f, 0.0f,
-	            0.0f, 0.0f, 1.0f, 1.0f,
-	            
-	            0.0f, 5.0f, 0.0f, 
-	            0.0f, 1.0f, 0.0f, 1.0f};
+		float []vertexData;
 		
-		vertexData=createFloatBufferFromData(triangle1VerticesData);
+		nLines=mapDimensions.x + mapDimensions.y + 2;	
+		vertexData=new float[nLines*FLOATS_PER_LINE];
+		
+		Log.w("SNAKE -------:", "left: "+mapBoundaries.left+" right: "+mapBoundaries.right+" top: "+mapBoundaries.top+" bottom: "+mapBoundaries.bottom);
+		
+		float accumulator=bottomLeft.x;
+		for (int x=0; x<=mapDimensions.x; x++){
+
+			Log.w("SNAKE ---------:", "X: "+accumulator);
+			
+			vertexData[x*FLOATS_PER_LINE]=accumulator;
+			vertexData[x*FLOATS_PER_LINE+1]=mapBoundaries.top-0.001f;
+			vertexData[x*FLOATS_PER_LINE+2]=accumulator;
+			vertexData[x*FLOATS_PER_LINE+3]=mapBoundaries.bottom+0.001f;
+			
+			accumulator=accumulator + 1.0f;
+		}
+		
+		accumulator=bottomLeft.y;
+		int offset=(mapDimensions.x+1)*FLOATS_PER_LINE;
+		for (int y=0; y<=mapDimensions.y; y++){
+			Log.w("SNAKE ---------:", "Y: "+accumulator);
+			
+			vertexData[offset+y*FLOATS_PER_LINE]=mapBoundaries.left+0.001f;
+			vertexData[offset+y*FLOATS_PER_LINE+1]=accumulator;
+			vertexData[offset+y*FLOATS_PER_LINE+2]=mapBoundaries.right-0.001f;
+			vertexData[offset+y*FLOATS_PER_LINE+3]=accumulator;
+			
+			accumulator=accumulator + 1.0f;
+		}
+		
+		this.vertexData=createFloatBufferFromData(vertexData);
 	}
 	
 	
 	@Override
 	public void init() {
-		program=new OpenGLProgram(appContext, R.raw.passthrough_vert, R.raw.passthrough_frag);
+		program=new OpenGLProgram(appContext, R.raw.singlecolor_vert, R.raw.passthrough_frag);
 		
 		mvpMatrixHandle = program.getUniformLocation("u_MVPMatrix");        
 	    positionHandle = program.getAttributeLocation("a_Position");
-	    colorHandle = program.getAttributeLocation("a_Color");
+	    colorHandle = program.getUniformLocation("u_Color");
+	    
+	    
 	}
 	
 	@Override
@@ -63,28 +97,30 @@ public class Grid extends Renderable{
 
 	@Override
 	public void render() {
+		if (vertexData == null)
+			return;
+		
+		GLES20.glUniform4f( colorHandle, 1.0f, 0.0f, 0.0f, 1.0f);
+		
 		// Pass in the position information
-		vertexData.position(POS_OFFSET);
+		//vertexData.position(8);
         GLES20.glVertexAttribPointer(positionHandle, POS_SIZE, GLES20.GL_FLOAT, false,
         		STRIDE, vertexData);        
                 
         GLES20.glEnableVertexAttribArray(positionHandle);        
         
-        // Pass in the color information
-        vertexData.position(COLOR_OFFSET);
-        GLES20.glVertexAttribPointer(colorHandle, COLOR_SIZE, GLES20.GL_FLOAT, false,
-        		STRIDE, vertexData);        
+       GLES20.glLineWidth(2.0f);
+       
+        // GLES20.glEnable(GLES20.GL_LIN)
         
-        GLES20.glEnableVertexAttribArray(colorHandle);
-        
-        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 3); 
+        GLES20.glDrawArrays(GLES20.GL_LINES, 0, nLines*2); 
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
 	public void resize(int h, int w) {
-		// TODO Auto-generated method stub
+		buildVertexData();
 	}
 	
 	
