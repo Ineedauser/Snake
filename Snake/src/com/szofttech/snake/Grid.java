@@ -30,13 +30,13 @@ public class Grid extends Renderable{
 		final float[] triangle1VerticesData = {
 				// X, Y, Z, 
 				// R, G, B, A
-	            -0.5f, -0.25f, 0.0f, 
+	            10.0f, 0.0f, 0.0f, 
 	            1.0f, 0.0f, 0.0f, 1.0f,
 	            
-	            0.5f, -0.25f, 0.0f,
+	            -10.0f, 0.0f, 0.0f,
 	            0.0f, 0.0f, 1.0f, 1.0f,
 	            
-	            0.0f, 0.559016994f, 0.0f, 
+	            0.0f, 5.0f, 0.0f, 
 	            0.0f, 1.0f, 0.0f, 1.0f};
 		
 		vertexData=createFloatBufferFromData(triangle1VerticesData);
@@ -54,11 +54,11 @@ public class Grid extends Renderable{
 	
 	@Override
 	public void renderPrepare(long time) {
-		float angleInDegrees = (360.0f / 10000.0f) * ((int) time);
+		//float angleInDegrees = (360.0f / 10000.0f) * ((int) time);
         
         // Draw the triangle facing straight on.
-        Matrix.setIdentityM(modelMatrix, 0);
-        Matrix.rotateM(modelMatrix, 0, angleInDegrees, 0.0f, 1.0f, 0.0f);
+        //Matrix.setIdentityM(modelMatrix, 0);
+       // Matrix.rotateM(modelMatrix, 0, angleInDegrees, 0.0f, 1.0f, 0.0f);
 	}
 
 	@Override

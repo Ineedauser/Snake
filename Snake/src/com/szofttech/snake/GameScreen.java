@@ -12,6 +12,8 @@ public class GameScreen extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
+		CoordinateManager.getInstance().resizeMap(10,20);
+		
 		SnakeRenderer renderer=new SnakeRenderer();
 		Grid g=new Grid(getBaseContext());
 		renderer.addRenderable(g);
