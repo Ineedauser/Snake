@@ -3,13 +3,15 @@ package com.szofttech.snake;
 import javax.microedition.khronos.egl.EGL10;
 
 import android.app.Activity;
+import android.graphics.Color;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 
 
 public class GameScreen extends Activity {	
 	private GLSurfaceView openglSurface;
-
+	
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -18,6 +20,7 @@ public class GameScreen extends Activity {
 		
 		SnakeRenderer renderer=new SnakeRenderer();
 		Grid g=new Grid(getBaseContext());
+		g.setColor(Color.RED);
 		renderer.addRenderable(g);
 		
 
