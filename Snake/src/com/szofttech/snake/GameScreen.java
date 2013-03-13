@@ -19,8 +19,13 @@ public class GameScreen extends Activity {
 		CoordinateManager.getInstance().resizeMap(24,40);
 		
 		SnakeRenderer renderer=new SnakeRenderer();
+	
 		Grid g=new Grid(getBaseContext());
 		g.setColor(Color.RED);
+		
+		Collectable c=new Collectable(getBaseContext());
+		
+		renderer.addRenderable(c);
 		renderer.addRenderable(g);
 		
 
