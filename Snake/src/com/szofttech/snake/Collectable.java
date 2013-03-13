@@ -3,20 +3,23 @@ package com.szofttech.snake;
 import java.nio.FloatBuffer;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.graphics.Point;
-import android.graphics.PointF;
-import android.graphics.RectF;
 import android.opengl.GLES20;
+import android.opengl.GLUtils;
+import android.opengl.Matrix;
 
 public class Collectable  extends Renderable{
 	OpenGLProgram program;
 
+	final int[] textureHandle = new int[1];
+	
 	private FloatBuffer vertexData;
 	
 	int mvpMatrixHandle;
 	int positionHandle;
-	int colorHandle;
+	int textureShaderHandle;
 	int nLines;
 	
 	private GLColor color;
@@ -40,40 +43,6 @@ public class Collectable  extends Renderable{
 	}
 	
 	void buildVertexData(){
-		/*CoordinateManager cm=CoordinateManager.getInstance();
-		Point mapDimensions=cm.getMapDimensions();
-		PointF bottomLeft=cm.getCellCorner(0, 0);
-		RectF mapBoundaries=cm.getMapBoundaries();
-		
-		float []vertexData;
-		
-		nLines=mapDimensions.x + mapDimensions.y + 2;	
-		vertexData=new float[nLines*FLOATS_PER_LINE];
-		
-
-		float accumulator=bottomLeft.x;
-		for (int x=0; x<=mapDimensions.x; x++){
-			vertexData[x*FLOATS_PER_LINE]=accumulator;
-			vertexData[x*FLOATS_PER_LINE+1]=mapBoundaries.top;
-			vertexData[x*FLOATS_PER_LINE+2]=accumulator;
-			vertexData[x*FLOATS_PER_LINE+3]=mapBoundaries.bottom;
-			
-			accumulator=accumulator + 1.0f;
-		}
-
-		
-		accumulator=bottomLeft.y;
-		int offset=(mapDimensions.x+1)*FLOATS_PER_LINE;
-		
-		for (int y=0; y<=mapDimensions.y; y++){			
-			vertexData[offset+y*FLOATS_PER_LINE]=mapBoundaries.left;
-			vertexData[offset+y*FLOATS_PER_LINE+1]=accumulator;
-			vertexData[offset+y*FLOATS_PER_LINE+2]=mapBoundaries.right;
-			vertexData[offset+y*FLOATS_PER_LINE+3]=accumulator;
-			
-			accumulator=accumulator + 1.0f;
-		}*/
-		
 		float []vertexData={
 			-0.5f,-0.5f,
 			 -0.5f, 0.5f,
@@ -86,18 +55,56 @@ public class Collectable  extends Renderable{
 	}
 	
 	
+	void loadTexture(){	    
+	    GLES20.glGenTextures(1, textureHandle, 0);
+	 
+	    if (textureHandle[0] != 0){	        
+	    	final BitmapFactory.Options options = new BitmapFactory.Options();
+		    options.inScaled = false;
+		    
+	        // Read in the resource
+	        final Bitmap bitmap = BitmapFactory.decodeResource(appContext.getResources(), R.drawable.cseresznye, options);       
+	        // Bind to the texture in OpenGL
+	        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureHandle[0]);
+	 
+	        // Set filtering
+	        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST);
+	        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_NEAREST);
+	 
+	        // Load the bitmap into the bound texture.
+	        GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
+	 
+	        // Recycle the bitmap, since its data has been loaded into OpenGL.
+	        bitmap.recycle();
+	    }
+	 
+	    if (textureHandle[0] == 0){
+	        throw new RuntimeException("Error loading texture.");
+	    }
+	}
+	
 	@Override
 	public void init() {
-		program=new OpenGLProgram(appContext, R.raw.singlecolor_vert, R.raw.passthrough_frag);
+		program=new OpenGLProgram(appContext, R.raw.simple_texture_vert, R.raw.texture_frag);
 		
 		mvpMatrixHandle = program.getUniformLocation("u_MVPMatrix");        
 	    positionHandle = program.getAttributeLocation("a_Position");
-	    colorHandle = program.getUniformLocation("u_Color");
+	    textureShaderHandle = program.getUniformLocation("u_Texture");
+	    
+	    
+	    loadTexture();
+	 
 	}
 	
 	@Override
 	public void renderPrepare(long time) {
-		
+		float angleInDegrees = (360.0f / 10000.0f) * ((int) time);
+         
+        // Draw the triangle facing straight on.
+        Matrix.setIdentityM(modelMatrix, 0);
+        Matrix.translateM(modelMatrix, 0, 0.5f, 0.5f, 0.0f);
+        Matrix.rotateM(modelMatrix, 0, angleInDegrees, 0.0f, 0.0f, 1.0f);   
+    
 	}
 
 	@Override
@@ -105,10 +112,13 @@ public class Collectable  extends Renderable{
 		if (vertexData == null)
 			return;
 		
-		GLES20.glUniform4f( colorHandle, color.r, color.g, color.b, 1.0f);
+		// Set the active texture unit to texture unit 0.
+	    GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
+	    GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureHandle[0]);
+	    GLES20.glUniform1i(textureShaderHandle, 0);
+		
 		
 		// Pass in the position information
-		//vertexData.position(8);
         GLES20.glVertexAttribPointer(positionHandle, POS_SIZE, GLES20.GL_FLOAT, false,
         		STRIDE, vertexData);        
                 

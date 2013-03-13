@@ -18,16 +18,17 @@ public class GameScreen extends Activity {
 		
 		CoordinateManager.getInstance().resizeMap(24,40);
 		
+		//CoordinateManager.getInstance().resizeMap(10,16);
+		
 		SnakeRenderer renderer=new SnakeRenderer();
 	
 		Grid g=new Grid(getBaseContext());
-		g.setColor(Color.RED);
+		g.setColor(Color.GRAY);
 		
 		Collectable c=new Collectable(getBaseContext());
 		
-		renderer.addRenderable(c);
 		renderer.addRenderable(g);
-		
+		renderer.addRenderable(c);
 
 		openglSurface = new GLSurfaceView(this);
 		openglSurface.setEGLContextClientVersion(2);
@@ -35,17 +36,6 @@ public class GameScreen extends Activity {
 		openglSurface.setRenderer(renderer);
 		
 		
-		int[] configSpec = {
-                EGL10.EGL_RED_SIZE, 5,
-                EGL10.EGL_GREEN_SIZE, 6,
-                EGL10.EGL_BLUE_SIZE, 5,
-                EGL10.EGL_DEPTH_SIZE, 16,
-                // Requires that setEGLContextClientVersion(2) is called on the view.
-                EGL10.EGL_RENDERABLE_TYPE, 4 /* EGL_OPENGL_ES2_BIT */,
-                EGL10.EGL_SAMPLE_BUFFERS, 1 /* true */,
-                EGL10.EGL_SAMPLES, 2,
-                EGL10.EGL_NONE
-        };
 
 
 		setContentView(openglSurface);
