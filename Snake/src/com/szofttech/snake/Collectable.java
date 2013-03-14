@@ -12,8 +12,6 @@ import android.opengl.Matrix;
 
 public class Collectable  extends Renderable{
 	OpenGLProgram program;
-
-	final int[] textureHandle = new int[1];
 	
 	private FloatBuffer vertexData;
 	
@@ -23,6 +21,7 @@ public class Collectable  extends Renderable{
 	int nLines;
 	
 	private GLColor color;
+	OpenGLTexture texture;
 	
 	private final int POS_SIZE = 2;
 	private final int STRIDE = POS_SIZE * BYTES_PER_FLOAT;
@@ -55,36 +54,6 @@ public class Collectable  extends Renderable{
 	}
 	
 	
-	void loadTexture(){	    
-	    GLES20.glGenTextures(1, textureHandle, 0);
-	 
-	    if (textureHandle[0] != 0){	        
-	    	final BitmapFactory.Options options = new BitmapFactory.Options();
-		    options.inScaled = false;
-		    
-	        // Read in the resource
-	        final Bitmap bitmap = BitmapFactory.decodeResource(appContext.getResources(), R.drawable.cseresznye, options);       
-	        // Bind to the texture in OpenGL
-	        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureHandle[0]);
-	 
-	        // Set filtering
-	        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR_MIPMAP_LINEAR);
-	        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
-	 
-	        // Load the bitmap into the bound texture.
-	        GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
-	        
-	        GLES20.glGenerateMipmap(GLES20.GL_TEXTURE_2D);
-	 
-	        // Recycle the bitmap, since its data has been loaded into OpenGL.
-	        bitmap.recycle();
-	    }
-	 
-	    if (textureHandle[0] == 0){
-	        throw new RuntimeException("Error loading texture.");
-	    }
-	}
-	
 	@Override
 	public void init() {
 		program=new OpenGLProgram(appContext, R.raw.simple_texture_vert, R.raw.texture_frag);
@@ -92,9 +61,6 @@ public class Collectable  extends Renderable{
 		mvpMatrixHandle = program.getUniformLocation("u_MVPMatrix");        
 	    positionHandle = program.getAttributeLocation("a_Position");
 	    textureShaderHandle = program.getUniformLocation("u_Texture");
-	    
-	    
-	    loadTexture();
 	 
 	}
 	
@@ -116,7 +82,7 @@ public class Collectable  extends Renderable{
 		
 		// Set the active texture unit to texture unit 0.
 	    GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
-	    GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureHandle[0]);
+	    GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, TextureTable.getTextureHandle(TextureTable.CHERRY));
 	    GLES20.glUniform1i(textureShaderHandle, 0);
 		
 		

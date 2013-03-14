@@ -6,6 +6,7 @@ import java.util.Iterator;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
+import android.content.Context;
 import android.graphics.RectF;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
@@ -28,6 +29,10 @@ public class SnakeRenderer implements GLSurfaceView.Renderer {
 		
 	private ArrayList<Renderable> objectList;
 	
+	private final Context appContext;
+	
+	
+	
 	public void addRenderable(Renderable object){
 		objectList.add(object);
 	}
@@ -36,8 +41,9 @@ public class SnakeRenderer implements GLSurfaceView.Renderer {
 		objectList.remove(object);
 	}
 		
-	public SnakeRenderer(){
+	public SnakeRenderer(final Context appContext){
 		objectList=new ArrayList<Renderable>();
+		this.appContext=appContext;
 	}
 	
 	@Override
@@ -65,7 +71,7 @@ public class SnakeRenderer implements GLSurfaceView.Renderer {
 		// view matrix. In OpenGL 2, we can keep track of these matrices separately if we choose.
 		Matrix.setLookAtM(mViewMatrix, 0, eyeX, eyeY, eyeZ, lookX, lookY, lookZ, upX, upY, upZ);
 
-		  
+		TextureTable.init(appContext);
 		
 		Iterator<Renderable> itr = objectList.iterator();
         while(itr.hasNext()){
