@@ -70,11 +70,23 @@ public class CoordinateManager {
 		return new RectF(leftWithOffset, -bottomWithOffset, -leftWithOffset, bottomWithOffset);
 	}
 	
-	public PointF getCellCorner(int x, int y){
-		return new PointF(leftWithOffset+x, bottomWithOffset+y);
+	public float getCellX(int x){
+		return leftWithOffset+x;
 	}
+	
+	public float getCellY(int y){
+		return bottomWithOffset+y;
+	}
+	
+	public PointF getCellCorner(int x, int y){
+		return new PointF(getCellX(x), getCellY(y));
+	}
+	
+	
 	
 	public Point getMapDimensions(){
 		return new Point(boardSizeBigger, boardSizeSmaller);
 	}
+	
+	
 }

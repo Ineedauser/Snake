@@ -3,11 +3,8 @@ package com.szofttech.snake;
 import java.nio.FloatBuffer;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Color;
+import android.graphics.Point;
 import android.opengl.GLES20;
-import android.opengl.GLUtils;
 import android.opengl.Matrix;
 
 public class Collectable  extends Renderable{
@@ -18,37 +15,37 @@ public class Collectable  extends Renderable{
 	int mvpMatrixHandle;
 	int positionHandle;
 	int textureShaderHandle;
-	int nLines;
-	
-	private GLColor color;
-	OpenGLTexture texture;
-	
+		
 	private final int POS_SIZE = 2;
 	private final int STRIDE = POS_SIZE * BYTES_PER_FLOAT;
 	
-
+	private Point position;
+	
 	public Collectable(Context appContext) {
 		super(appContext);
-		color = new GLColor(Color.GREEN);
 		vertexData=null;
+		setPosition(new Point(0,0));
 	}
 	
-	void setColor(GLColor color){
-		this.color=color;
+	
+	void setPosition(Point position){
+		this.position=position;
 	}
 	
-	void setColor(int color){
-		this.color.set(color);
+	void setPosition(int x, int y){
+		position.x=x;
+		position.y=y;
 	}
+	
 	
 	void buildVertexData(){
+		//One cell sized box.
 		float []vertexData={
 			-0.5f,-0.5f,
 			 -0.5f, 0.5f,
 			 0.5f, -0.5f,
 			 0.5f, 0.5f,
 		};
-		
 		
 		this.vertexData=createFloatBufferFromData(vertexData);
 	}
@@ -61,16 +58,18 @@ public class Collectable  extends Renderable{
 		mvpMatrixHandle = program.getUniformLocation("u_MVPMatrix");        
 	    positionHandle = program.getAttributeLocation("a_Position");
 	    textureShaderHandle = program.getUniformLocation("u_Texture");
-	 
+	    
+	    buildVertexData();	 
 	}
 	
 	@Override
 	public void renderPrepare(long time) {
 		float angleInDegrees = (360.0f / 10000.0f) * ((int) time);
-         
-        // Draw the triangle facing straight on.
+        
+		CoordinateManager cm=CoordinateManager.getInstance();
+		
         Matrix.setIdentityM(modelMatrix, 0);
-        Matrix.translateM(modelMatrix, 0, 0.5f, 0.5f, 0.0f);
+        Matrix.translateM(modelMatrix, 0, cm.getCellX(position.x)+0.5f, cm.getCellY(position.y)+0.5f, 0.0f);
         Matrix.rotateM(modelMatrix, 0, angleInDegrees, 0.0f, 0.0f, 1.0f);   
     
 	}
@@ -98,7 +97,6 @@ public class Collectable  extends Renderable{
 
 	@Override
 	public void resize(int h, int w) {
-		buildVertexData();
 	}
 	
 	

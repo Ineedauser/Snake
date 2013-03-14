@@ -1,7 +1,5 @@
 package com.szofttech.snake;
 
-import javax.microedition.khronos.egl.EGL10;
-
 import android.app.Activity;
 import android.graphics.Color;
 import android.opengl.GLSurfaceView;
@@ -26,6 +24,7 @@ public class GameScreen extends Activity {
 		g.setColor(Color.GRAY);
 		
 		Collectable c=new Collectable(getBaseContext());
+		c.setPosition(10, 5);
 		
 		renderer.addRenderable(g);
 		renderer.addRenderable(c);
@@ -34,9 +33,6 @@ public class GameScreen extends Activity {
 		openglSurface.setEGLContextClientVersion(2);
 		//openglSurface.setEGLConfigChooser(new MultisampleConfigChooser());
 		openglSurface.setRenderer(renderer);
-		
-		
-
 
 		setContentView(openglSurface);
 	}
