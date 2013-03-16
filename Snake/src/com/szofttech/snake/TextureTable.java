@@ -8,12 +8,15 @@ import android.content.Context;
  * 
  */
 public class TextureTable {
-	static final private int N_TEXTURES = 1;
+	static final private int N_TEXTURES = 3;
 	
 	static final public int CHERRY = 0;
+	static final public int SNAKE = 1;
+	static final public int SNAKE_FRONT = 2;
+	
+	static private int[] resources={R.drawable.cseresznye, R.drawable.snakesegment, R.drawable.snakesegment_eye};
 	
 	static private OpenGLTexture[] textures=null;
-	static private int[] resources={R.drawable.cseresznye};
 	
 	static public void init(final Context context){
 		if (textures == null){
