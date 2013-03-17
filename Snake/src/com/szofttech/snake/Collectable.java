@@ -7,7 +7,7 @@ import android.graphics.Point;
 import android.opengl.GLES20;
 import android.opengl.Matrix;
 
-public class Collectable  extends Renderable{
+public abstract class Collectable  extends Renderable{
 	OpenGLProgram program;
 	
 	private FloatBuffer vertexData;
@@ -20,6 +20,8 @@ public class Collectable  extends Renderable{
 	private final int STRIDE = POS_SIZE * BYTES_PER_FLOAT;
 	
 	private Point position;
+	
+	abstract protected int getTextureID();
 	
 	public Collectable(Context appContext) {
 		super(appContext);
@@ -81,7 +83,7 @@ public class Collectable  extends Renderable{
 		
 		// Set the active texture unit to texture unit 0.
 	    GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
-	    GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, TextureTable.getTextureHandle(TextureTable.CHERRY));
+	    GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, TextureTable.getTextureHandle(getTextureID()));
 	    GLES20.glUniform1i(textureShaderHandle, 0);
 		
 		

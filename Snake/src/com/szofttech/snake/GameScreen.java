@@ -15,19 +15,26 @@ public class GameScreen extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
-		//CoordinateManager.getInstance().resizeMap(24,40);
+		CoordinateManager.getInstance().resizeMap(24,40);
 
 		//CoordinateManager.getInstance().resizeMap(36,60);
 		//CoordinateManager.getInstance().resizeMap(48,80);
-		CoordinateManager.getInstance().resizeMap(10,16);
+		//CoordinateManager.getInstance().resizeMap(10,16);
 		
 		SnakeRenderer renderer=new SnakeRenderer(getBaseContext());
 	
 		Grid g=new Grid(getBaseContext());
 		g.setColor(Color.GRAY);
 		
-		Collectable c=new Collectable(getBaseContext());
+		Fruit c=new Fruit(getBaseContext());
 		c.setPosition(10, 5);
+		
+		Skull c2=new Skull(getBaseContext());
+		c2.setPosition(3, 5);
+		
+		Star c3=new Star(getBaseContext());
+		c3.setPosition(7, 3);
+		
 		
 		
 		Snake s=new Snake(getBaseContext());
@@ -46,6 +53,8 @@ public class GameScreen extends Activity {
 		
 		renderer.addRenderable(g);
 		renderer.addRenderable(c);
+		renderer.addRenderable(c2);
+		renderer.addRenderable(c3);
 		renderer.addRenderable(s);
 		renderer.addRenderable(s2);
 

@@ -10,6 +10,7 @@ public class OpenGLTexture {
 	final int[] textureHandle = new int[1];
 	
 	public void load(final Bitmap bitmap){
+		GLES20.glGenTextures(1, textureHandle, 0);
 	    if (textureHandle[0] != 0){	        
 	    	GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureHandle[0]);
 	 
@@ -27,7 +28,7 @@ public class OpenGLTexture {
 	    }
 	}
 	
-	public void load(final Context context, final int resource){    
+	public void load(final Context context, final int resource){  
     	final BitmapFactory.Options options = new BitmapFactory.Options();
 	    options.inScaled = false;
 		    
@@ -39,11 +40,9 @@ public class OpenGLTexture {
 	}
 	
 	public OpenGLTexture(){
-		GLES20.glGenTextures(1, textureHandle, 0);
 	}
 	
 	public OpenGLTexture(final Bitmap bitmap){
-		GLES20.glGenTextures(1, textureHandle, 0);
 		load(bitmap);
 	}
 	
