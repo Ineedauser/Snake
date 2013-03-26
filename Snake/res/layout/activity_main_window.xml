@@ -31,7 +31,7 @@
         android:id="@+id/testButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="testButton" />
+        android:text="@string/singleplayer_button" />
 
     <Button
         android:id="@+id/serverSelectedButton"

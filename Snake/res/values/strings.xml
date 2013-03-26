@@ -10,5 +10,11 @@
     <string name="title_activity_game_screen">GameScreen</string>
     <string name="dummy_button">Dummy Button</string>
     <string name="dummy_content">DUMMY\nCONTENT</string>
+    <string name="bluetooth_must_be_enabled">Bluetooth must be enabled for a multiplayer game!</string>
+    <string name="bluetooth_not_found_message">Bluetooth not found in Your phone. Bluetooth support is required for multiplayer game.</string>
+    <string name="bluetooth_not_found_title">Bluetooth not found</string>
+    <string name="error_dialog_close_button">Close</string>
+    <string name="bluetooth_not_enabled_title">Bluetooth not enabled</string>
+    <string name="singleplayer_button">Single palyer</string>
 
 </resources>
