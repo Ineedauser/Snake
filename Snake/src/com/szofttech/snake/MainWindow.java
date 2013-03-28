@@ -7,11 +7,13 @@ import com.larvalabs.svgandroid.SVGParser;
 import android.os.Bundle;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.view.Menu;
 import android.view.View;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -21,6 +23,7 @@ public class MainWindow extends Activity {
 	private final int BLUETOOTH_ENABLE_TIMEOUT=300;
 	private final int BLUETOOTH_DISCOVERABLE_RESULT=1;
 	private final int BLUETOOTH_ENABLE_RESULT=2;
+	private final int BLUETOOTH_SELECTED=3;
 
 	BluetoothAdapter bluetoothAdapter;
 	
@@ -32,14 +35,21 @@ public class MainWindow extends Activity {
 		
 	}
 	
+	void showClientListWindow(){
+		Intent scannerIntent = new Intent(getBaseContext(), BluetoothDeviceList.class);
+		startActivityForResult(scannerIntent,BLUETOOTH_SELECTED);
+	}
+	
 	void startServerGame(){
 		
 	}
 	
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    	super.onCreate(savedInstanceState);
+    	
         setContentView(R.layout.activity_main_window);
+        
         
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
        
@@ -74,6 +84,7 @@ public class MainWindow extends Activity {
             	Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
         		discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, BLUETOOTH_ENABLE_TIMEOUT);
         		startActivityForResult(discoverableIntent,BLUETOOTH_DISCOVERABLE_RESULT);
+      
             }
         });
         
@@ -89,13 +100,19 @@ public class MainWindow extends Activity {
                     Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
                     startActivityForResult(enableBtIntent, BLUETOOTH_DISCOVERABLE_RESULT);
                 } else
-                	startClientGame();
+                	showClientListWindow();
             }
+            
         });
         
         
         
 
+       /* ProgressDialog myDialog = new ProgressDialog(this);
+        myDialog.setMessage("Loading...");
+        myDialog.setCancelable(false);
+        myDialog.show();*/
+        
         
         
     }
@@ -108,18 +125,19 @@ public class MainWindow extends Activity {
     			if (resultCode == Activity.RESULT_CANCELED) {
                     // User did not enable Bluetooth or an error occurred
     				Helpers.showErrorMessage(this,  R.string.bluetooth_must_be_enabled, R.string.bluetooth_not_enabled_title);
+                } else {
+                	startServerGame();
                 }
-    		
-    			startServerGame();
     			break;
     			
     		case(BLUETOOTH_ENABLE_RESULT):
     			if (resultCode == Activity.RESULT_CANCELED) {
                     // User did not enable Bluetooth or an error occurred
     				Helpers.showErrorMessage(this,  R.string.bluetooth_must_be_enabled, R.string.bluetooth_not_enabled_title);
+                } else {
+		      		
+                	showClientListWindow();
                 }
-    		
-    			startClientGame();
     			break;
     	}
     }

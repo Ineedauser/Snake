@@ -16,5 +16,7 @@
     <string name="error_dialog_close_button">Close</string>
     <string name="bluetooth_not_enabled_title">Bluetooth not enabled</string>
     <string name="singleplayer_button">Single palyer</string>
+    <string name="title_activity_bluetooth_device_list">BluetoothDeviceList</string>
+    <string name="hello_world">Hello world!</string>
 
 </resources>
