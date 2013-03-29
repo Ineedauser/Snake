@@ -40,7 +40,7 @@
         </activity>
         <activity
             android:name="com.szofttech.snake.BluetoothDeviceList"
-            android:label="@string/title_activity_bluetooth_device_list" >
+            android:label="@string/title_activity_bluetooth_device_list" android:icon="@drawable/device_access_bluetooth">
         </activity>
     </application>
 
