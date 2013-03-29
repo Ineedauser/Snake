@@ -98,7 +98,7 @@ public class MainWindow extends Activity {
             	
             	if (!bluetoothAdapter.isEnabled()) {
                     Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                    startActivityForResult(enableBtIntent, BLUETOOTH_DISCOVERABLE_RESULT);
+                    startActivityForResult(enableBtIntent, BLUETOOTH_ENABLE_RESULT);
                 } else
                 	showClientListWindow();
             }

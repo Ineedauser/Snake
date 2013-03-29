@@ -18,5 +18,6 @@
     <string name="singleplayer_button">Single palyer</string>
     <string name="title_activity_bluetooth_device_list">Select server device</string>
     <string name="hello_world">Hello world!</string>
+    <string name="rescan_button_text">Tap to rescan</string>
 
 </resources>

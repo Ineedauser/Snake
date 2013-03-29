@@ -22,6 +22,7 @@ import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 public class BluetoothDeviceList extends Activity {
@@ -104,6 +105,7 @@ public class BluetoothDeviceList extends Activity {
 	private BluetoothDeviceAdapter deviceAdapter;
 	private ArrayList<BluetoothDeviceListItem> deviceList;
 	private BluetoothAdapter bluetoothAdapter;
+	private RelativeLayout rescanLayout;
 
 	private void addDevice(BluetoothDevice device){
 		BluetoothDeviceListItem.Type type;
@@ -143,11 +145,13 @@ public class BluetoothDeviceList extends Activity {
     void showScanningIndicator(){
     	setProgressBarIndeterminateVisibility(true);
 	    setProgressBarVisibility(true);
+	    rescanLayout.setVisibility(View.GONE);
     }
     
     void hideScanningIndicator(){
     	setProgressBarIndeterminateVisibility(false);
 	    setProgressBarVisibility(false);
+	    rescanLayout.setVisibility(View.VISIBLE);
     }
 	
 	private void fetchPairedDevices(){
@@ -191,6 +195,13 @@ public class BluetoothDeviceList extends Activity {
         filter = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
         this.registerReceiver(eventReceiver, filter);
 
+        rescanLayout=(RelativeLayout)findViewById(R.id.RescanLayout);
+        
+        rescanLayout.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+            	startScanning();
+            } 
+        });
 		
 		
 		setResult(Activity.RESULT_CANCELED);
@@ -201,7 +212,7 @@ public class BluetoothDeviceList extends Activity {
 	
 	
 	
-	void startScanning(){
+	private void startScanning(){
 	     showScanningIndicator();
 	     
 	     deviceList.clear();
