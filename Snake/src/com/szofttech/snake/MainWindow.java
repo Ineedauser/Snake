@@ -11,6 +11,7 @@ import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.view.Window;
@@ -31,8 +32,8 @@ public class MainWindow extends Activity {
 		Helpers.showErrorMessage(this, R.string.bluetooth_not_found_message, R.string.bluetooth_not_found_title);
 	}
 	
-	void startClientGame(){
-		
+	void startClientGame(String serverMacAddress){
+		Log.w("SNAKE                         ", "Game started on "+serverMacAddress);
 	}
 	
 	void showClientListWindow(){
@@ -105,21 +106,19 @@ public class MainWindow extends Activity {
             
         });
         
-        
-        
-
-       /* ProgressDialog myDialog = new ProgressDialog(this);
-        myDialog.setMessage("Loading...");
-        myDialog.setCancelable(false);
-        myDialog.show();*/
-        
-        
-        
     }
     
     @Override
     protected void onActivityResult (int requestCode, int resultCode, Intent data){
     	switch (requestCode){
+    	 	case BLUETOOTH_SELECTED:
+    	 		// When DeviceListActivity returns with a device to connect
+    	 		if (resultCode == Activity.RESULT_OK) {
+    	 			String mac = data.getExtras()
+    	 		            .getString(BluetoothDeviceList.EXTRA_DEVICE_ADDRESS);
+    	 			startClientGame(mac);
+    	 		}
+    	 		break;
     		case(BLUETOOTH_DISCOVERABLE_RESULT):
     			//This is the case when server mode is selected
     			if (resultCode == Activity.RESULT_CANCELED) {
