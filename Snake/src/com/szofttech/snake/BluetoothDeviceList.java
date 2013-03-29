@@ -13,11 +13,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.support.v4.widget.SimpleCursorAdapter;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
@@ -26,6 +29,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 public class BluetoothDeviceList extends Activity {
+    public static String EXTRA_DEVICE_ADDRESS = "mac_address";
 	
 	private static class BluetoothDeviceListItem{
 		public enum Type {COMPUTER, PHONE, UNKNOWN};
@@ -166,6 +170,19 @@ public class BluetoothDeviceList extends Activity {
         }
 	}
 	
+	private void itemSelected(int position){
+		BluetoothDeviceListItem dev=deviceList.get(position);
+		
+		bluetoothAdapter.cancelDiscovery();
+		
+		// Create the result Intent and include the MAC address
+        Intent intent = new Intent();
+        intent.putExtra(EXTRA_DEVICE_ADDRESS, dev.mac);
+
+        // Set result and finish this Activity
+        setResult(Activity.RESULT_OK, intent);
+        finish();
+	}
 	
 	
 	@Override
@@ -185,7 +202,15 @@ public class BluetoothDeviceList extends Activity {
 		ListView deviceListView=(ListView)findViewById(R.id.bluetoothList);
 		deviceListView.setAdapter(deviceAdapter);
 		
+		deviceListView.setOnItemClickListener(new OnItemClickListener(){
+			@Override
+			public void onItemClick(AdapterView<?> parent, View item, int position,
+					long id) {
+				
+				itemSelected(position);
+			}
 		
+		});
 		
 		// Register for broadcasts when a device is discovered
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
