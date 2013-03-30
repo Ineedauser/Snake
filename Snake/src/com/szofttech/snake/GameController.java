@@ -138,36 +138,32 @@ public class GameController extends Thread{
 		}
 	}
 	
+	void waitForNewTimeframe(){
+		long endTime=game.networkManager.getFrameStartTimeInMills()+game.settings.stepTime;
+		
+		while (true){
+			long time=System.currentTimeMillis();
+			
+			if (time>=endTime){
+				break;
+			}
+			
+			try {
+				Thread.sleep(endTime-time);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
+	
 	@Override
     public void run(){
 		generatePlacements();
 		mergeNewObjects();
 		
 		while (running){
-			
-			long endTime=game.networkManager.getFrameStartTimeInMills()+game.settings.stepTime;
-			
-			while (true){
-				long time=System.currentTimeMillis();
-				
-				if (time>=endTime){
-					break;
-				}
-				
-				try {
-					Thread.sleep(endTime-time);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-			
-			try {
-				Thread.sleep(100);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			waitForNewTimeframe();
 		
 			generatePlacements();
 			mergeNewObjects();
