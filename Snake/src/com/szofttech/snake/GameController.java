@@ -4,7 +4,6 @@ import java.util.Random;
 
 import android.graphics.Color;
 import android.graphics.Point;
-import android.util.Log;
 
 public class GameController extends Thread{
 	private final Game game;
@@ -14,6 +13,10 @@ public class GameController extends Thread{
 	private Snake.Direction [] snakeDirections;
 	private CollectableList collectables;
 	private ObjectPlacementList newObjects;
+	private int [] deadSnakeDelays;
+	private int [] skipSteps;
+	
+	private static final int SNAKE_DEAD_DELAY_CYCLES=2;
 	
 	
 	private Random random;
@@ -42,11 +45,16 @@ public class GameController extends Thread{
 		
 		snakes=new Snake[users.length];
 		snakeDirections=new Snake.Direction[users.length];
+		deadSnakeDelays=new int[users.length];
+		skipSteps=new int[users.length];
 		for (int a=0; a<snakes.length; a++){
 			snakes[a]=new Snake(game.context);
 			snakes[a].setColor(users[a].color);
 			snakes[a].setDead(true);
 			game.renderer.addRenderable(snakes[a]);
+			
+			deadSnakeDelays[a]=0;
+			skipSteps[a]=0;
 		}
 	}
 	
@@ -74,8 +82,37 @@ public class GameController extends Thread{
 		} while (getObjectDistances(p)<=minSquredDistance);
 		
 		ObjectPool.getInstance().putPoint(mapSize);
-		
+				
 		return p;
+	}
+	
+	private Point getWallNormalVectorNearPoint(Point pos){
+		int x=0;
+		int y=0;
+		
+		if (pos.x==0)
+			x=1;
+		else if (pos.y==0)
+			y=1;
+		else {
+			Point mapSize=CoordinateManager.getInstance().getMapDimensions();
+			
+			if (pos.x==(mapSize.x-1))
+				x=-1;
+			else if (pos.y==(mapSize.y-1))
+				y=-1;
+			
+			ObjectPool.getInstance().putPoint(mapSize);
+		}
+		
+		if (x!=0 || y!=0){
+			Point result=ObjectPool.getInstance().getPoint();
+			result.x=x;
+			result.y=y;
+			return result;
+		}
+		
+		return null;		
 	}
 	
 	private void generatePlacements(){
@@ -84,15 +121,34 @@ public class GameController extends Thread{
 		
 		for (int a=0; a<snakes.length; a++){
 			if (snakes[a].isDead()){
+				if (deadSnakeDelays[a]!=0)
+					continue;
+				
 				Point p=getRandomPlacement(3*3);
 				
 				int dx=0;
 				int dy=0;
+				boolean swapPoints=false;
 				
+			
 				if (random.nextInt(2)==0){
 					dx=random.nextInt(2)*2-1;
-				} else
+				} else {
 					dy=random.nextInt(2)*2-1;
+				}
+			
+				Point wallNormal=getWallNormalVectorNearPoint(p);
+				if (wallNormal!=null){
+					if (dx!=0 && wallNormal.x!=0){
+						dx=wallNormal.x;
+						swapPoints=true;
+					} else if (dy!=0 && wallNormal.y!=0){
+						dy=wallNormal.y;
+						swapPoints=true;
+					}
+										
+					ObjectPool.getInstance().putPoint(wallNormal);					
+				}
 				
 				NewObjectPlacement p1=ObjectPool.getInstance().getNewObjectPlacement();
 				NewObjectPlacement p2=ObjectPool.getInstance().getNewObjectPlacement();
@@ -106,11 +162,13 @@ public class GameController extends Thread{
 				p2.user=a;
 				p2.type=NewObjectPlacement.Type.SNAKE;
 				
-				game.networkManager.putNewObjects(p1,p2);
+
+				if (swapPoints)
+					game.networkManager.putNewObjects(p2,p1);
+				else
+					game.networkManager.putNewObjects(p1,p2);
 				
 				ObjectPool.getInstance().putPoint(p);
-				
-				snakes[a].setDead(false);
 			}
 		}
 	}	
@@ -125,16 +183,60 @@ public class GameController extends Thread{
 			switch (o.type){
 				case SNAKE:
 					snakes[o.user].addPoint(o.position);
+					snakes[o.user].setDead(false);
+					skipSteps[o.user]=1;
+				default:
+					break;
 			}
 			
 			ObjectPool.getInstance().putNewObjectPlacement(o);
 		}
 	}
 	
+	void dieSnake(int index){
+		snakes[index].setDead(true);
+		deadSnakeDelays[index]=SNAKE_DEAD_DELAY_CYCLES;
+	}
+	
 	void moveSnakes(){
-		game.networkManager.getSnakeDirections(snakeDirections);
 		for (int a=0; a<snakes.length; a++){
+			if (!snakes[a].isSnakeValid())
+				continue;
+			
+			if (skipSteps[a]>0){
+				skipSteps[a]--;
+				continue;
+			}
+			
 			snakes[a].move(snakeDirections[a], false);
+		}
+	}
+	
+	void wallDetect(){
+		for (int a=0; a<snakes.length; a++){
+			if (!snakes[a].isSnakeValid())
+				continue;
+			
+			Point pos=snakes[a].getFuturePosition(snakeDirections[a]);
+			if (!CoordinateManager.getInstance().isValidPosition(pos)){
+				dieSnake(a);
+			}
+		}
+	}
+	
+	void collisionDetect(){
+		wallDetect();
+	}
+	
+	void updateDeadSnakeDelays(){
+		for (int a=0; a<snakes.length; a++){
+			if (deadSnakeDelays[a]==0)
+				continue;
+						
+			deadSnakeDelays[a]=deadSnakeDelays[a]-1;
+			if (deadSnakeDelays[a]==0){
+				snakes[a].clearPoints();
+			}
 		}
 	}
 	
@@ -163,8 +265,11 @@ public class GameController extends Thread{
 		while (running){
 			waitForNewTimeframe();
 		
+			game.networkManager.getSnakeDirections(snakeDirections);
+			updateDeadSnakeDelays();
 			generatePlacements();
 			mergeNewObjects();
+			collisionDetect();
 			moveSnakes();
 		}
     }

@@ -1,9 +1,6 @@
 package com.szofttech.snake;
 
 import android.app.Activity;
-import android.graphics.Color;
-import android.graphics.Point;
-import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 
 
@@ -25,7 +22,9 @@ public class GameScreen extends Activity {
 		game.settings=new GameSettings();
 		game.settings.height=24;
 		game.settings.width=40;
-		game.settings.stepTime=1000;
+		//game.settings.height=10;
+		//game.settings.width=15;
+		game.settings.stepTime=50;
 		game.context=this;
 
 		

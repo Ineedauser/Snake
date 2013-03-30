@@ -20,6 +20,8 @@ public class CoordinateManager {
 	private float left;
 	private float bottomWithOffset;
 	private float leftWithOffset;
+	private int mapSizeX;
+	private int mapSizeY;
 	
 	static private CoordinateManager instance=null;
 	
@@ -34,8 +36,15 @@ public class CoordinateManager {
 	}
 	
 	private void caclulate(){
-		
-		
+		if (ratio>1.0f){
+			mapSizeX=boardSizeSmaller;
+			mapSizeY=boardSizeBigger;
+		} else {
+			mapSizeY=boardSizeSmaller;
+			mapSizeX=boardSizeBigger;		
+		}
+			
+			
 		if (ratio < sceneRatio){
 			//Set coordinates based on the smaller side
 			bottom=-(float)boardSizeSmaller/2.0f;
@@ -90,8 +99,12 @@ public class CoordinateManager {
 	 */
 	public Point getMapDimensions(){
 		Point result=ObjectPool.getInstance().getPoint();
-		result.set(boardSizeBigger, boardSizeSmaller);
+		result.set(mapSizeX, mapSizeY);
 		return result;
+	}
+	
+	public boolean isValidPosition(Point p){
+		return (p.x>=0 && p.y>=0 && p.x<mapSizeX && p.y<mapSizeY);
 	}
 	
 	

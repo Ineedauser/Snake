@@ -1,9 +1,8 @@
 package com.szofttech.snake;
 
 import java.nio.FloatBuffer;
+import java.security.InvalidParameterException;
 import java.util.Iterator;
-import java.util.LinkedList;
-
 import android.content.Context;
 import android.graphics.Point;
 import android.opengl.GLES20;
@@ -29,9 +28,24 @@ public class Snake extends ActiveGameObject{
 	private final int POS_SIZE = 2;
 	private final int STRIDE = POS_SIZE * BYTES_PER_FLOAT;
 	
-	LinkedList<Point> snakePoints;
+	PointList snakePoints;
 	
 	private GLColor color=null;
+	
+	public static Direction getOppositeDirection(Direction d){
+		switch (d){
+			case UP:
+				return Direction.DOWN;
+			case DOWN:
+				return Direction.UP;
+			case LEFT:
+				return Direction.RIGHT;
+			case RIGHT:
+				return Direction.LEFT;
+			default:
+				throw new IllegalArgumentException("Invalid direction");
+		}
+	}
 	
 	public synchronized void setColor(GLColor color){
 		this.color=color;
@@ -56,7 +70,7 @@ public class Snake extends ActiveGameObject{
 	public Snake(Context appContext) {
 		super(appContext);
 		vertexData=null;
-		snakePoints=new LinkedList<Point>();
+		snakePoints=new PointList();
 		dead=true;
 		
 		Matrix.setIdentityM(modelMatrix, 0);
@@ -68,14 +82,25 @@ public class Snake extends ActiveGameObject{
 		snakePoints.add(ObjectPool.getInstance().copyPoint(p));
 	}
 	
+	public synchronized void clearPoints(){
+		snakePoints.clear();
+	}
+	
 	private Point getNextPosition(Direction dir){
 		Point result=ObjectPool.getInstance().getPoint();
 		Point first=snakePoints.getFirst();
 		
 		result.set(first.x, first.y);
 		
+		Direction snakeDirection=getSnakeDirection();
+		
 		if (dir==Direction.UNCHANGED){
-			dir=getSnakeDirection();
+			dir=snakeDirection;
+		} else {
+			Direction opposite=getOppositeDirection(dir);
+			if (snakeDirection.equals(opposite)){
+				dir=snakeDirection;
+			}
 		}
 		
 		switch(dir){
@@ -98,7 +123,18 @@ public class Snake extends ActiveGameObject{
 		return result;
 	}
 	
+	public synchronized Point getFuturePosition(Direction dir){
+		return getNextPosition(dir);
+	}
+	
+	public synchronized boolean isSnakeValid(){
+		return (!dead) && (snakePoints.size()>=2);
+	}
+	
 	public synchronized void move(Direction dir, boolean grow){
+		if (dead)
+			return;
+		
 		snakePoints.addFirst(getNextPosition(dir));
 		if (!grow){
 			Point p=snakePoints.pollLast();
@@ -152,6 +188,8 @@ public class Snake extends ActiveGameObject{
 			case LEFT:
 				GLES20.glUniform4f( rotateVectorHandle, -1.0f, 0.0f, 0.0f, 1.0f);
 				break;
+			default:
+				throw new InvalidParameterException("Cannot rotate texture to unknown direction");
 		}
 	}
 	
@@ -220,14 +258,19 @@ public class Snake extends ActiveGameObject{
 	        
 	        rotateBasedOnDirectionVector(dx,dy);
 	       
+
+	        //Set color
+	        if (dead){
+	        	GLES20.glUniform4f( colorHandle, 0.5f*color.r, 0.5f*color.g, 0.5f*color.b, 1.0f);
+	        } else {
+	        	GLES20.glUniform4f( colorHandle, 0.5f*color.r+0.5f, 0.5f*color.g+0.5f, 0.5f*color.b+0.5f, 1.0f);
+	        }
 	        
-	      //Set color
-	      		GLES20.glUniform4f( colorHandle, 0.5f*color.r+0.5f, 0.5f*color.g+0.5f, 0.5f*color.b+0.5f, 1.0f);
-	      		
 	        drawSnakeSegment(first);
 	        
-	      //Set color
-	      		GLES20.glUniform4f( colorHandle, color.r, color.g, color.b, 1.0f);
+	        //Set color
+	        if (!dead)
+	        	GLES20.glUniform4f( colorHandle, color.r, color.g, color.b, 1.0f);
 	      		
 	        
 	    	//Set the active texture unit to texture unit 0.
