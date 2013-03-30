@@ -151,8 +151,6 @@ public class GameController extends Thread{
 			try {
 				Thread.sleep(endTime-time);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
 			}
 		}
 	}
