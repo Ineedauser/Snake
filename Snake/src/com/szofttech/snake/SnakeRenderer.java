@@ -34,11 +34,15 @@ public class SnakeRenderer implements GLSurfaceView.Renderer {
 	
 	
 	public void addRenderable(Renderable object){
-		objectList.add(object);
+		synchronized(objectList){
+			objectList.add(object);
+		}
 	}
 	
 	public void removeRenderable(Renderable object){
-		objectList.remove(object);
+		synchronized(objectList){
+			objectList.remove(object);
+		}
 	}
 		
 	public SnakeRenderer(final Context appContext){
@@ -73,11 +77,13 @@ public class SnakeRenderer implements GLSurfaceView.Renderer {
 
 		TextureTable.init(appContext);
 		
-		Iterator<Renderable> itr = objectList.iterator();
-        while(itr.hasNext()){
-        	Renderable obj=itr.next();
-        	obj.init();
-        }
+		synchronized(objectList){
+			Iterator<Renderable> itr = objectList.iterator();
+			while(itr.hasNext()){
+				Renderable obj=itr.next();
+				obj.init();
+			}
+		}
         
         GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
         GLES20.glEnable(GLES20.GL_BLEND);
@@ -122,12 +128,13 @@ public class SnakeRenderer implements GLSurfaceView.Renderer {
 		
 		
 		
-		
-		Iterator<Renderable> itr = objectList.iterator();
-        while(itr.hasNext()){
-        	Renderable obj=itr.next();
-        	obj.resize(height, width);
-        }
+		synchronized(objectList){
+			Iterator<Renderable> itr = objectList.iterator();
+			while(itr.hasNext()){
+				Renderable obj=itr.next();
+				obj.resize(height, width);
+			}
+		}
 	}	
 
 	@Override
@@ -141,22 +148,23 @@ public class SnakeRenderer implements GLSurfaceView.Renderer {
         // Do a complete rotation every 10 seconds.
         long time = SystemClock.uptimeMillis();
         
-        
-        Iterator<Renderable> itr = objectList.iterator();
-        while(itr.hasNext()){
-        	Renderable obj=itr.next();
-        	
-        	obj.useProgram();
-        	
-        	int mvpHandle=obj.getMVPMatrixHandle();
-        	
-        	obj.renderPrepare(time);
-        	
-    		Matrix.multiplyMM(mMVPMatrix, 0, mViewMatrix, 0, obj.getModelMatrix(), 0);
-    		Matrix.multiplyMM(mMVPMatrix, 0, mProjectionMatrix, 0, mMVPMatrix, 0);
-    		GLES20.glUniformMatrix4fv(mvpHandle, 1, false, mMVPMatrix, 0);
-    		
-        	obj.render(); 
+        synchronized(objectList){
+	        Iterator<Renderable> itr = objectList.iterator();
+	        while(itr.hasNext()){
+	        	Renderable obj=itr.next();
+	        	
+	        	obj.useProgram();
+	        	
+	        	int mvpHandle=obj.getMVPMatrixHandle();
+	        	
+	        	obj.renderPrepare(time);
+	        	
+	    		Matrix.multiplyMM(mMVPMatrix, 0, mViewMatrix, 0, obj.getModelMatrix(), 0);
+	    		Matrix.multiplyMM(mMVPMatrix, 0, mProjectionMatrix, 0, mMVPMatrix, 0);
+	    		GLES20.glUniformMatrix4fv(mvpHandle, 1, false, mMVPMatrix, 0);
+	    		
+	        	obj.render(); 
+	        }
         }
 	}
 }

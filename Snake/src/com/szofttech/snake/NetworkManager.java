@@ -1,18 +1,9 @@
 package com.szofttech.snake;
 
-import android.bluetooth.BluetoothAdapter;
-import android.content.Intent;
+import java.util.ArrayList;
 
-public class NetworkManager {
-	static private BluetoothAdapter bluetoothAdapter = null;
-	
-	static void init(){
-		bluetoothAdapter=BluetoothAdapter.getDefaultAdapter();
-	}
-	
-	NetworkManager createClient(){
-		
-		//bluetoothAdapter.is
-		return null;
-	}
+public abstract class NetworkManager {
+	public abstract void getSnakeDirections(Snake.Direction [] destionation);
+	public abstract void putLocalDirection(Snake.Direction direction);
+	public abstract long getFrameStartTimeInMills();
 }

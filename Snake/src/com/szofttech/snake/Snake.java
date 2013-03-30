@@ -3,6 +3,7 @@ package com.szofttech.snake;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedList;
 
 import android.content.Context;
 import android.graphics.Point;
@@ -14,7 +15,7 @@ public class Snake  extends Renderable{
 	
 	private FloatBuffer vertexData;
 	
-	private enum Direction {UP, DOWN, RIGHT, LEFT};
+	public enum Direction {UP, DOWN, RIGHT, LEFT};
 	
 	int mvpMatrixHandle;
 	int positionHandle;
@@ -26,15 +27,15 @@ public class Snake  extends Renderable{
 	private final int POS_SIZE = 2;
 	private final int STRIDE = POS_SIZE * BYTES_PER_FLOAT;
 	
-	ArrayList<Point> snakePoints;
+	LinkedList<Point> snakePoints;
 	
 	private GLColor color=null;
 	
-	void setColor(GLColor color){
+	public synchronized void setColor(GLColor color){
 		this.color=color;
 	}
 
-	void setColor(int color){
+	public synchronized void setColor(int color){
 		if (this.color==null)
 			this.color=new GLColor(color);
 		else
@@ -46,19 +47,19 @@ public class Snake  extends Renderable{
 	public Snake(Context appContext) {
 		super(appContext);
 		vertexData=null;
-		snakePoints=new ArrayList<Point>();
+		snakePoints=new LinkedList<Point>();
 		
 		Matrix.setIdentityM(modelMatrix, 0);
 		Matrix.translateM(modelMatrix, 0, CoordinateManager.getInstance().getCellX(0) + 0.5f,
 	   		 CoordinateManager.getInstance().getCellY(0)+0.5f, 0.0f);
 	}
 	
-	void addPoint(Point p){
+	public synchronized void addPoint(Point p){
 		snakePoints.add(p);
 	}
 	
 	
-	void buildVertexData(){
+	private void buildVertexData(){
 		//One cell sized box.
 		float []vertexData={
 			-0.5f,-0.5f,
@@ -119,13 +120,13 @@ public class Snake  extends Renderable{
         	throw new RuntimeException("Pieces of snake must be tied together.");
 	}
 	
-	void drawSnakeSegment(Point p){
+	private void drawSnakeSegment(Point p){
 		GLES20.glUniform2f( coordinateShiftHandle, p.x, p.y);
     	GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
 	}
 
 	@Override
-	public void render() {
+	public synchronized void render() {
 		if (vertexData == null)
 			return;
 		

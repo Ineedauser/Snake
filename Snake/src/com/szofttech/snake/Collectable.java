@@ -30,11 +30,11 @@ public abstract class Collectable  extends Renderable{
 	}
 	
 	
-	void setPosition(Point position){
+	public synchronized void setPosition(Point position){
 		this.position=position;
 	}
 	
-	void setPosition(int x, int y){
+	public synchronized void setPosition(int x, int y){
 		position.x=x;
 		position.y=y;
 	}
@@ -77,7 +77,7 @@ public abstract class Collectable  extends Renderable{
 	}
 
 	@Override
-	public void render() {
+	public synchronized void render() {
 		if (vertexData == null)
 			return;
 		
