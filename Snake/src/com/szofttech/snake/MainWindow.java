@@ -1,14 +1,18 @@
 package com.szofttech.snake;
 
+import java.io.IOException;
+
 import com.szofttech.snake.GameScreen;
 import com.larvalabs.svgandroid.SVG;
 import com.larvalabs.svgandroid.SVGParser;
 
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.util.Log;
@@ -19,21 +23,54 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-public class MainWindow extends Activity {
+public class MainWindow extends Activity{
+	private static final String TAG="Snake.MainWindow";
 	
 	private final int BLUETOOTH_ENABLE_TIMEOUT=300;
 	private final int BLUETOOTH_DISCOVERABLE_RESULT=1;
 	private final int BLUETOOTH_ENABLE_RESULT=2;
 	private final int BLUETOOTH_SELECTED=3;
+	
 
 	BluetoothAdapter bluetoothAdapter;
+	BluetoothServer server;
+	
+	private ProgressDialog busyDialog;
+	
+	
+	
+	private class ConnectToServerThread extends AsyncTask<BluetoothDevice, Void, BluetoothClientSocket> {	
+		@Override
+		protected BluetoothClientSocket doInBackground(BluetoothDevice... devs) {
+			return BluetoothClientSocket.createClientSocket(devs[0]);
+		}
+		
+		@Override
+		protected void onPreExecute() {  
+			busyDialog.setMessage(getText(R.string.connecting_wait_text));
+			busyDialog.show();
+		}
+			
+		@Override
+		protected void onPostExecute(BluetoothClientSocket socket) {
+			busyDialog.hide();
+			if (socket==null){
+				Helpers.showErrorMessage(MainWindow.this, R.string.server_connect_failed_message, R.string.failed_to_connect_title);
+			} else {
+			}
+	    }
+	}
+
+	
 	
 	void showBluetoothNotFoundError(){
 		Helpers.showErrorMessage(this, R.string.bluetooth_not_found_message, R.string.bluetooth_not_found_title);
 	}
 	
-	void startClientGame(String serverMacAddress){
-		Log.w("SNAKE                         ", "Game started on "+serverMacAddress);
+	
+	
+	void startClientGame(BluetoothDevice dev){
+		new ConnectToServerThread().execute(dev);
 	}
 	
 	void showClientListWindow(){
@@ -42,7 +79,10 @@ public class MainWindow extends Activity {
 	}
 	
 	void startServerGame(){
+		if (server==null)
+			server=new BluetoothServer();
 		
+		server.startListening();
 	}
 	
     @Override
@@ -65,10 +105,13 @@ public class MainWindow extends Activity {
         Button clientButton=(Button)findViewById(R.id.clientSelectedButton);
         Button serverButton=(Button)findViewById(R.id.serverSelectedButton);
         
+        busyDialog=new ProgressDialog(this);
+        busyDialog.setCancelable(false);
+        
         //MainWindow windowReference = this;
         testButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                // Perform action on click
+            	// Perform action on click
             	Intent intent = new Intent(getBaseContext(), GameScreen.class);
             	startActivity(intent);
             }
@@ -114,8 +157,8 @@ public class MainWindow extends Activity {
     	 	case BLUETOOTH_SELECTED:
     	 		// When DeviceListActivity returns with a device to connect
     	 		if (resultCode == Activity.RESULT_OK) {
-    	 			String mac = data.getExtras()
-    	 		            .getString(BluetoothDeviceList.EXTRA_DEVICE_ADDRESS);
+    	 			BluetoothDevice mac = (BluetoothDevice)data.getExtras()
+    	 		            .get(BluetoothDeviceList.EXTRA_DEVICE);
     	 			startClientGame(mac);
     	 		}
     	 		break;
@@ -147,5 +190,6 @@ public class MainWindow extends Activity {
         getMenuInflater().inflate(R.menu.activity_main_window, menu);
         return true;
     }
-        
+
+	
 }

@@ -29,28 +29,14 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 public class BluetoothDeviceList extends Activity {
-    public static String EXTRA_DEVICE_ADDRESS = "mac_address";
-	
-	private static class BluetoothDeviceListItem{
-		public enum Type {COMPUTER, PHONE, UNKNOWN};
-		
-		public String name;
-		public String mac;
-		public Type type;
-	
-		BluetoothDeviceListItem(String name, String mac, Type type){
-			this.name = name;
-			this.mac = mac;
-			this.type=type;
-		}
-	}
+    public static String EXTRA_DEVICE = "device";
 	
 	
 	private static class BluetoothDeviceAdapter extends BaseAdapter{
 		private LayoutInflater inflater=null;
-		private ArrayList<BluetoothDeviceListItem> devices;
+		private ArrayList<BluetoothDevice> devices;
 		
-		public BluetoothDeviceAdapter(final Activity owner, ArrayList<BluetoothDeviceListItem> devices) {
+		public BluetoothDeviceAdapter(final Activity owner, ArrayList<BluetoothDevice> devices) {
 			inflater = (LayoutInflater)owner.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 			this.devices=devices;
 		}
@@ -68,18 +54,18 @@ public class BluetoothDeviceList extends Activity {
 		    	TextView mac = (TextView)view.findViewById(R.id.macAddress);
 		    	ImageView icon= (ImageView)view.findViewById(R.id.deviceIcon);
 		    	
-		    	BluetoothDeviceListItem device=(BluetoothDeviceListItem)getItem(position);
-		    	name.setText(device.name);
-		    	mac.setText(device.mac);
+		    	BluetoothDevice device=(BluetoothDevice)getItem(position);
+		    	name.setText(device.getName());
+		    	mac.setText(device.getAddress());
 		    	
-		    	switch (device.type){
-		    		case COMPUTER:
+		    	switch (device.getBluetoothClass().getMajorDeviceClass()){
+		    		case(BluetoothClass.Device.Major.COMPUTER):
 		    			icon.setImageResource(R.drawable.hardware_computer);
 		    			break;
-		    		case PHONE:
+		    		case(BluetoothClass.Device.Major.PHONE):
 		    			icon.setImageResource(R.drawable.hardware_phone);
 		    			break;
-		    		case UNKNOWN:
+		    		default:
 		    			icon.setImageResource(R.drawable.action_help);
 		    			break;
 		    	}
@@ -107,25 +93,17 @@ public class BluetoothDeviceList extends Activity {
 	
 	
 	private BluetoothDeviceAdapter deviceAdapter;
-	private ArrayList<BluetoothDeviceListItem> deviceList;
+	private ArrayList<BluetoothDevice> deviceList;
 	private BluetoothAdapter bluetoothAdapter;
 	private RelativeLayout rescanLayout;
 
 	private void addDevice(BluetoothDevice device){
-		BluetoothDeviceListItem.Type type;
-		switch (device.getBluetoothClass().getMajorDeviceClass()){
-			case(BluetoothClass.Device.Major.PHONE):
-				type=BluetoothDeviceListItem.Type.PHONE;
-				break;
-			case(BluetoothClass.Device.Major.COMPUTER):
-				type=BluetoothDeviceListItem.Type.COMPUTER;
-				break;
-			default:
-				type=BluetoothDeviceListItem.Type.UNKNOWN;
-				break;
-		}
-		
-		deviceList.add(new BluetoothDeviceListItem(device.getName(), device.getAddress(), type));
+		deviceList.add(device);
+		deviceAdapter.notifyDataSetChanged();
+	}
+	
+	private void removeDeviceList(){
+		deviceList.clear();
 		deviceAdapter.notifyDataSetChanged();
 	}
 	
@@ -171,16 +149,18 @@ public class BluetoothDeviceList extends Activity {
 	}
 	
 	private void itemSelected(int position){
-		BluetoothDeviceListItem dev=deviceList.get(position);
+		BluetoothDevice dev=deviceList.get(position);
 		
 		bluetoothAdapter.cancelDiscovery();
 		
 		// Create the result Intent and include the MAC address
         Intent intent = new Intent();
-        intent.putExtra(EXTRA_DEVICE_ADDRESS, dev.mac);
+        intent.putExtra(EXTRA_DEVICE, dev);
 
         // Set result and finish this Activity
         setResult(Activity.RESULT_OK, intent);
+        
+        removeDeviceList();
         finish();
 	}
 	
@@ -196,7 +176,7 @@ public class BluetoothDeviceList extends Activity {
         
 		setContentView(R.layout.activity_bluetooth_device_list);
 		
-		deviceList=new ArrayList<BluetoothDeviceListItem>();
+		deviceList=new ArrayList<BluetoothDevice>();
 		deviceAdapter=new BluetoothDeviceAdapter(this,deviceList);
 		
 		ListView deviceListView=(ListView)findViewById(R.id.bluetoothList);
@@ -254,7 +234,8 @@ public class BluetoothDeviceList extends Activity {
 	protected void onDestroy() {
 	    super.onDestroy();
 	
-	  
+	    removeDeviceList();
+	    
 	    if (bluetoothAdapter != null) {
 	    	bluetoothAdapter.cancelDiscovery();
 	    }

@@ -19,5 +19,8 @@
     <string name="title_activity_bluetooth_device_list">Select server device</string>
     <string name="hello_world">Hello world!</string>
     <string name="rescan_button_text">Tap to rescan</string>
+    <string name="failed_to_connect_title">Failed to connect</string>
+    <string name="server_connect_failed_message">Failed to connect to server. Either the server is not running on remote device or it is full.</string>
+    <string name="connecting_wait_text">Connecting...</string>
 
 </resources>
