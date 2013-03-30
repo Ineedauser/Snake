@@ -18,9 +18,12 @@ public class DummyNetworkManager extends NetworkManager {
 	public DummyNetworkManager(){
 		objects = new LinkedList<NewObjectPlacement>();
 		users = new User[1];
+		users[0]= new User();
 		
 		users[0].name="Local";
 		users[0].color=new GLColor(Color.RED);
+		
+		lastDirection=Direction.UNCHANGED;
 	}
 	
 	
@@ -36,6 +39,7 @@ public class DummyNetworkManager extends NetworkManager {
 			throw new IllegalArgumentException("The length of the destination buffer must be equal to the number of users!");
 		
 		destionation[0]=lastDirection;
+		lastDirection=Direction.UNCHANGED;
 	}
 
 	@Override
@@ -44,12 +48,13 @@ public class DummyNetworkManager extends NetworkManager {
 	}
 
 	@Override
-	public void putNewObject(NewObjectPlacement object) {
-		objects.push(object);		
+	public void putNewObjects(NewObjectPlacement... object) {
+		for (int a=0; a<object.length; a++)
+			objects.push(object[a]);		
 	}
 
 	@Override
-	public void getNewObjects(LinkedList<NewObjectPlacement> objects) {
+	public void getNewObjects(ObjectPlacementList objects) {
 		objects.clear();
 		
 		while (!this.objects.isEmpty())

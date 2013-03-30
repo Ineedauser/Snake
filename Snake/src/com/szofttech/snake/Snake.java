@@ -14,16 +14,17 @@ public class Snake extends ActiveGameObject{
 	
 	private FloatBuffer vertexData;
 	
-	public enum Direction {UP, DOWN, RIGHT, LEFT};
+	public enum Direction {UP, DOWN, RIGHT, LEFT, UNCHANGED};
 	
-	int mvpMatrixHandle;
-	int positionHandle;
-	int textureShaderHandle;
-	int coordinateShiftHandle;
-	int colorHandle;
-	int rotateVectorHandle;
+	private int mvpMatrixHandle;
+	private int positionHandle;
+	private int textureShaderHandle;
+	private int coordinateShiftHandle;
+	private int colorHandle;
+	private int rotateVectorHandle;
 	
-	boolean dead;
+	private boolean dead;
+	
 		
 	private final int POS_SIZE = 2;
 	private final int STRIDE = POS_SIZE * BYTES_PER_FLOAT;
@@ -64,7 +65,45 @@ public class Snake extends ActiveGameObject{
 	}
 	
 	public synchronized void addPoint(Point p){
-		snakePoints.add(p);
+		snakePoints.add(ObjectPool.getInstance().copyPoint(p));
+	}
+	
+	private Point getNextPosition(Direction dir){
+		Point result=ObjectPool.getInstance().getPoint();
+		Point first=snakePoints.getFirst();
+		
+		result.set(first.x, first.y);
+		
+		if (dir==Direction.UNCHANGED){
+			dir=getSnakeDirection();
+		}
+		
+		switch(dir){
+			case UP:
+				result.y++;
+				break;
+			case DOWN:
+				result.y--;
+				break;
+			case LEFT:
+				result.x--;
+				break;
+			case RIGHT:
+				result.x++;
+				break;
+			case UNCHANGED:
+				throw new RuntimeException("This cannot happen!");
+		}
+		
+		return result;
+	}
+	
+	public synchronized void move(Direction dir, boolean grow){
+		snakePoints.addFirst(getNextPosition(dir));
+		if (!grow){
+			Point p=snakePoints.pollLast();
+			ObjectPool.getInstance().putPoint(p);
+		}
 	}
 	
 	
@@ -117,16 +156,31 @@ public class Snake extends ActiveGameObject{
 	}
 	
 	private void rotateBasedOnDirectionVector(int dx, int dy){
-		 if ((dx==0) && (dy==-1))
-        	rotateTexture(Direction.DOWN);
+		rotateTexture(getDirectionVector(dx,dy));
+	}
+	
+	private Direction getDirectionVector(int dx, int dy){
+		if ((dx==0) && (dy==-1))
+        	return Direction.DOWN;
         else if ((dx==0) && (dy==1))
-        	rotateTexture(Direction.UP);
+        	return Direction.UP;
         else if ((dy==0) && (dx==1))
-        	rotateTexture(Direction.RIGHT);
+        	return Direction.RIGHT;
         else if ((dy==0) && (dx==-1))
-        	rotateTexture(Direction.LEFT);
+        	return Direction.LEFT;
         else
         	throw new RuntimeException("Pieces of snake must be tied together.");
+	}
+	
+	private Direction getSnakeDirection(){
+		Iterator<Point> itr = snakePoints.iterator();
+        Point first=itr.next();
+        Point pos=itr.next();
+        
+        int dx=first.x-pos.x;
+        int dy=first.y-pos.y;
+        
+        return getDirectionVector(dx,dy);        
 	}
 	
 	private void drawSnakeSegment(Point p){
@@ -156,40 +210,39 @@ public class Snake extends ActiveGameObject{
 	    
         
         //Draw first part of the snake
-        if (snakePoints.size()<2)
-        	throw new RuntimeException("Snake must be at least 2 long.");
-                    
-        Iterator<Point> itr = snakePoints.iterator();
-        Point first=itr.next();
-        Point pos=itr.next();
-        
-        int dx=first.x-pos.x;
-        int dy=first.y-pos.y;
-        
-        rotateBasedOnDirectionVector(dx,dy);
-       
-        
-      //Set color
-      		GLES20.glUniform4f( colorHandle, 0.5f*color.r+0.5f, 0.5f*color.g+0.5f, 0.5f*color.b+0.5f, 1.0f);
-      		
-        drawSnakeSegment(first);
-        
-      //Set color
-      		GLES20.glUniform4f( colorHandle, color.r, color.g, color.b, 1.0f);
-      		
-        
-    	//Set the active texture unit to texture unit 0.
-	    GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
-	    GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, TextureTable.getTextureHandle(TextureTable.SNAKE));
-	    GLES20.glUniform1i(textureShaderHandle, 0);
-    	
-        while (true){
-        	drawSnakeSegment(pos);
-        	        	
-        	if (!itr.hasNext())
-        		break;
-        	
-        	pos=itr.next();
+        if (snakePoints.size()>=2){
+            Iterator<Point> itr = snakePoints.iterator();
+	        Point first=itr.next();
+	        Point pos=itr.next();
+	        
+	        int dx=first.x-pos.x;
+	        int dy=first.y-pos.y;
+	        
+	        rotateBasedOnDirectionVector(dx,dy);
+	       
+	        
+	      //Set color
+	      		GLES20.glUniform4f( colorHandle, 0.5f*color.r+0.5f, 0.5f*color.g+0.5f, 0.5f*color.b+0.5f, 1.0f);
+	      		
+	        drawSnakeSegment(first);
+	        
+	      //Set color
+	      		GLES20.glUniform4f( colorHandle, color.r, color.g, color.b, 1.0f);
+	      		
+	        
+	    	//Set the active texture unit to texture unit 0.
+		    GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
+		    GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, TextureTable.getTextureHandle(TextureTable.SNAKE));
+		    GLES20.glUniform1i(textureShaderHandle, 0);
+	    	
+	        while (true){
+	        	drawSnakeSegment(pos);
+	        	        	
+	        	if (!itr.hasNext())
+	        		break;
+	        	
+	        	pos=itr.next();
+	        }
         }
                
 	}

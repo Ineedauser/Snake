@@ -8,8 +8,8 @@ public abstract class NetworkManager {
 	
 	public abstract long getFrameStartTimeInMills();
 	
-	public abstract void putNewObject(NewObjectPlacement object);
-	public abstract void getNewObjects(LinkedList<NewObjectPlacement> objects);
+	public abstract void putNewObjects(NewObjectPlacement... object);
+	public abstract void getNewObjects(ObjectPlacementList objects);
 	
 	public abstract User [] getUserList();
 }

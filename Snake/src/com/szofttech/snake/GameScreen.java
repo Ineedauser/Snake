@@ -9,20 +9,35 @@ import android.os.Bundle;
 
 public class GameScreen extends Activity {	
 	private GLSurfaceView openglSurface;
+	private GameController gc;
 	
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
-		CoordinateManager.getInstance().resizeMap(24,40);
+		
+		
+		Game game=new Game();
+		game.networkManager=new DummyNetworkManager();
+		game.isServer=true;
+		game.renderer=new SnakeRenderer(getBaseContext());
+		game.settings=new GameSettings();
+		game.settings.height=24;
+		game.settings.width=40;
+		game.settings.stepTime=1000;
+		game.context=this;
+		
+		
+		
+		
 
 		//CoordinateManager.getInstance().resizeMap(36,60);
 		//CoordinateManager.getInstance().resizeMap(48,80);
 		//CoordinateManager.getInstance().resizeMap(96,160);
 		//CoordinateManager.getInstance().resizeMap(10,16);
 		
-		SnakeRenderer renderer=new SnakeRenderer(getBaseContext());
+		/*SnakeRenderer renderer=new SnakeRenderer(getBaseContext());
 	
 		Grid g=new Grid(getBaseContext());
 		g.setColor(Color.GRAY);
@@ -57,14 +72,17 @@ public class GameScreen extends Activity {
 		renderer.addRenderable(c2);
 		renderer.addRenderable(c3);
 		renderer.addRenderable(s);
-		renderer.addRenderable(s2);
+		renderer.addRenderable(s2);*/
 
 		openglSurface = new GLSurfaceView(this);
 		openglSurface.setEGLContextClientVersion(2);
 		//openglSurface.setEGLConfigChooser(new MultisampleConfigChooser());
-		openglSurface.setRenderer(renderer);
+		openglSurface.setRenderer(game.renderer);
 
 		setContentView(openglSurface);
+		
+		gc=new GameController(game);
+		gc.start();
 	}
 	
 	
@@ -84,6 +102,15 @@ public class GameScreen extends Activity {
 		openglSurface.onPause();
 	}	
 
+	@Override
+	protected void onDestroy() {
+	    super.onDestroy();
+	    
+	    gc.stopMe();
+	    gc=null;
+	    openglSurface=null;
+	}
+	
 
 	
 }

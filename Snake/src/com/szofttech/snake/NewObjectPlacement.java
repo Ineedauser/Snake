@@ -7,9 +7,13 @@ import android.graphics.Point;
  *
  */
 public class NewObjectPlacement {
-	public static enum Type {Snake, Fruit, Star, Skull};
+	public static enum Type {SNAKE, FRUIT, START, SKULL};
 	
 	public Type type;
 	public Point position;
 	public int user;
+	
+	public NewObjectPlacement(){
+		position=new Point();
+	}
 }
