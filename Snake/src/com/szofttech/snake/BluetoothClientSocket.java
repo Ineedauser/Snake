@@ -4,7 +4,6 @@ import java.io.IOException;
 
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
-import android.os.AsyncTask;
 import android.util.Log;
 
 public class BluetoothClientSocket extends SnakeBluetoothSocket{

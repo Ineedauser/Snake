@@ -1,7 +1,6 @@
 package com.szofttech.snake;
 
 import java.nio.FloatBuffer;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 
@@ -10,7 +9,7 @@ import android.graphics.Point;
 import android.opengl.GLES20;
 import android.opengl.Matrix;
 
-public class Snake  extends Renderable{
+public class Snake extends ActiveGameObject{
 	OpenGLProgram program;
 	
 	private FloatBuffer vertexData;
@@ -23,6 +22,8 @@ public class Snake  extends Renderable{
 	int coordinateShiftHandle;
 	int colorHandle;
 	int rotateVectorHandle;
+	
+	boolean dead;
 		
 	private final int POS_SIZE = 2;
 	private final int STRIDE = POS_SIZE * BYTES_PER_FLOAT;
@@ -42,12 +43,20 @@ public class Snake  extends Renderable{
 			this.color.set(color);
 	}
 	
+	public synchronized void setDead(boolean dead){
+		this.dead=dead;
+	}
+	
+	public synchronized boolean isDead(){
+		return dead;
+	}
 
 	
 	public Snake(Context appContext) {
 		super(appContext);
 		vertexData=null;
 		snakePoints=new LinkedList<Point>();
+		dead=true;
 		
 		Matrix.setIdentityM(modelMatrix, 0);
 		Matrix.translateM(modelMatrix, 0, CoordinateManager.getInstance().getCellX(0) + 0.5f,
@@ -198,5 +207,21 @@ public class Snake  extends Renderable{
 	@Override
 	public void useProgram() {
 		program.load();
+	}
+	
+	@Override
+	public synchronized int getDistanceSquared(final Point position) {
+		int minDistance=Integer.MAX_VALUE;
+		
+		Iterator<Point> itr = snakePoints.iterator();
+		while (itr.hasNext()){
+			Point p=itr.next();
+			minDistance=Math.min(minDistance, Helpers.pointDistanceSquared(p, position));
+			
+			if (minDistance==0)
+				break;
+		}
+		
+		return minDistance;
 	}
 }

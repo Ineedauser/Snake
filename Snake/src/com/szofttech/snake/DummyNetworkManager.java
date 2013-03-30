@@ -1,6 +1,8 @@
 package com.szofttech.snake;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
+
+import android.graphics.Color;
 
 import com.szofttech.snake.Snake.Direction;
 
@@ -10,6 +12,17 @@ import com.szofttech.snake.Snake.Direction;
  */
 public class DummyNetworkManager extends NetworkManager {
 	private Direction lastDirection;
+	private LinkedList<NewObjectPlacement> objects;
+	private User [] users;
+	
+	public DummyNetworkManager(){
+		objects = new LinkedList<NewObjectPlacement>();
+		users = new User[1];
+		
+		users[0].name="Local";
+		users[0].color=new GLColor(Color.RED);
+	}
+	
 	
 	@Override
 	public void putLocalDirection(Direction direction) {
@@ -28,6 +41,25 @@ public class DummyNetworkManager extends NetworkManager {
 	@Override
 	public long getFrameStartTimeInMills() {
 		return System.currentTimeMillis();
+	}
+
+	@Override
+	public void putNewObject(NewObjectPlacement object) {
+		objects.push(object);		
+	}
+
+	@Override
+	public void getNewObjects(LinkedList<NewObjectPlacement> objects) {
+		objects.clear();
+		
+		while (!this.objects.isEmpty())
+			objects.push(this.objects.pop());
+	}
+
+
+	@Override
+	public User[] getUserList() {
+		return users;
 	}
 
 }

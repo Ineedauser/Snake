@@ -1,7 +1,5 @@
 package com.szofttech.snake;
 
-import java.io.IOException;
-
 import com.szofttech.snake.GameScreen;
 import com.larvalabs.svgandroid.SVG;
 import com.larvalabs.svgandroid.SVGParser;
@@ -9,22 +7,17 @@ import com.larvalabs.svgandroid.SVGParser;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.util.Log;
 import android.view.Menu;
 import android.view.View;
-import android.view.Window;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 public class MainWindow extends Activity{
-	private static final String TAG="Snake.MainWindow";
+	//private static final String TAG="Snake.MainWindow";
 	
 	private final int BLUETOOTH_ENABLE_TIMEOUT=300;
 	private final int BLUETOOTH_DISCOVERABLE_RESULT=1;

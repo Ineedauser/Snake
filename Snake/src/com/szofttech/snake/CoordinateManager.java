@@ -83,9 +83,15 @@ public class CoordinateManager {
 	}
 	
 	
-	
+	/**
+	 * DO NOT FORGET TO PUT THE RESULTING POINT BACK IN THE OBJECT POOL.
+	 * 
+	 * @return The size of the map.
+	 */
 	public Point getMapDimensions(){
-		return new Point(boardSizeBigger, boardSizeSmaller);
+		Point result=ObjectPool.getInstance().getPoint();
+		result.set(boardSizeBigger, boardSizeSmaller);
+		return result;
 	}
 	
 	

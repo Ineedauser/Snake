@@ -8,6 +8,7 @@ import java.io.InputStreamReader;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.graphics.Point;
 
 public class Helpers {
 	public static String readTextFileFromRawResource(final Context context, final int resourceId) throws IOException{
@@ -42,5 +43,12 @@ public class Helpers {
 		});
 		
 		alertDialog.show();
+	}
+	
+	public static int pointDistanceSquared(final Point p1, final Point p2){
+		int dx=p1.x-p2.x;
+		int dy=p1.y-p2.y;
+		
+		return dx*dx+dy*dy;
 	}
 }

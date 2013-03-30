@@ -1,9 +1,6 @@
 package com.szofttech.snake;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.UUID;
 
 import android.bluetooth.BluetoothAdapter;

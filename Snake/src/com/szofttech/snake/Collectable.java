@@ -7,7 +7,7 @@ import android.graphics.Point;
 import android.opengl.GLES20;
 import android.opengl.Matrix;
 
-public abstract class Collectable  extends Renderable{
+public abstract class Collectable extends ActiveGameObject{
 	OpenGLProgram program;
 	
 	private FloatBuffer vertexData;
@@ -110,5 +110,10 @@ public abstract class Collectable  extends Renderable{
 	@Override
 	public void useProgram() {
 		program.load();
+	}
+	
+	@Override
+	public int getDistanceSquared(final Point position){
+		return Helpers.pointDistanceSquared(this.position, position);
 	}
 }

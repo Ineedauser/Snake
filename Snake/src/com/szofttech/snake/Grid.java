@@ -76,6 +76,8 @@ public class Grid extends Renderable{
 		}
 		
 		this.vertexData=createFloatBufferFromData(vertexData);
+		
+		ObjectPool.getInstance().putPoint(mapDimensions);
 	}
 	
 	
