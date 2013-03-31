@@ -16,8 +16,8 @@ public class GameController extends Thread{
 	private int [] deadSnakeDelays;
 	private int [] skipSteps;
 	
-	private static final int SNAKE_DEAD_DELAY_CYCLES=2;
-	
+	private static final int SNAKE_DEAD_DELAY_MS=2000;
+	private static final int SNAKE_START_DELAY_MS=500;
 	
 	private Random random;
 	
@@ -184,7 +184,7 @@ public class GameController extends Thread{
 				case SNAKE:
 					snakes[o.user].addPoint(o.position);
 					snakes[o.user].setDead(false);
-					skipSteps[o.user]=1;
+					skipSteps[o.user]=SNAKE_START_DELAY_MS/game.settings.stepTime;
 				default:
 					break;
 			}
@@ -195,7 +195,7 @@ public class GameController extends Thread{
 	
 	void dieSnake(int index){
 		snakes[index].setDead(true);
-		deadSnakeDelays[index]=SNAKE_DEAD_DELAY_CYCLES;
+		deadSnakeDelays[index]=SNAKE_DEAD_DELAY_MS/game.settings.stepTime;
 	}
 	
 	void moveSnakes(){
