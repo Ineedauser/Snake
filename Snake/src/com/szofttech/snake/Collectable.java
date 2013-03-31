@@ -26,17 +26,21 @@ public abstract class Collectable extends ActiveGameObject{
 	public Collectable(Context appContext) {
 		super(appContext);
 		vertexData=null;
-		setPosition(new Point(0,0));
+		position=new Point(0,0);
 	}
 	
 	
 	public synchronized void setPosition(Point position){
-		this.position=position;
+		setPosition(position.x, position.y);
 	}
 	
 	public synchronized void setPosition(int x, int y){
 		position.x=x;
 		position.y=y;
+	}
+	
+	public synchronized Point getPosition(){
+		return ObjectPool.getInstance().copyPoint(position);
 	}
 	
 	

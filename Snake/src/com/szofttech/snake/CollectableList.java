@@ -9,7 +9,7 @@ public class CollectableList extends ArrayList<Collectable> {
 	private static final long serialVersionUID = 2271960335980929177L;
 	
 	
-	int getDistanceSquared(final Point p){
+	public int getDistanceSquared(final Point p){
 		int minDistance=Integer.MAX_VALUE;
 		
 		Iterator<Collectable> i= iterator();
@@ -19,6 +19,24 @@ public class CollectableList extends ArrayList<Collectable> {
 		}
 		
 		return minDistance;
+	}
+	
+	public Collectable findByPos(final Point pos){
+		Iterator<Collectable> i= iterator();
+		while (i.hasNext()){
+			Collectable c=i.next();
+			Point collectablePos=c.getPosition();
+			
+			if (pos.equals(collectablePos)){
+				ObjectPool.getInstance().putPoint(collectablePos);
+				return c;
+			}
+			
+			ObjectPool.getInstance().putPoint(collectablePos);
+			
+		}
+		
+		return null;
 	}
 	
 }

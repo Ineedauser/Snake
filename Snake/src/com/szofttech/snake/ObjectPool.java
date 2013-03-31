@@ -2,17 +2,20 @@ package com.szofttech.snake;
 
 import java.util.LinkedList;
 
+import android.content.Context;
 import android.graphics.Point;
 
 public class ObjectPool {
 	private LinkedList <Point> pointPool;
 	private LinkedList <NewObjectPlacement> newObjectPlacementPool;
+	private LinkedList <Fruit> fruitPool;
 	
 	static private ObjectPool instance=null;
 	
 	private ObjectPool(){
 		pointPool=new LinkedList<Point>();
 		newObjectPlacementPool=new LinkedList<NewObjectPlacement>();
+		fruitPool=new LinkedList<Fruit>();
 	}
 	
 	
@@ -39,11 +42,7 @@ public class ObjectPool {
 		return result;
 	}
 	
-	void clear(){
-		pointPool.clear();
-		newObjectPlacementPool.clear();
-	}
-	
+
 	
 	public NewObjectPlacement getNewObjectPlacement(){
 		if (newObjectPlacementPool.isEmpty()){
@@ -55,5 +54,23 @@ public class ObjectPool {
 	
 	public void putNewObjectPlacement(NewObjectPlacement p){
 		newObjectPlacementPool.addFirst(p);
+	}
+	
+	
+	public Fruit getFruit(final Context appContext){
+		if (fruitPool.isEmpty()){
+			return new Fruit(appContext);
+		} else
+			return fruitPool.pop();
+	}
+	
+	public void putFruit(Fruit f){
+		fruitPool.push(f);
+	}
+	
+	void clear(){
+		pointPool.clear();
+		newObjectPlacementPool.clear();
+		fruitPool.clear();
 	}
 }

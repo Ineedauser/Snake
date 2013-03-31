@@ -15,6 +15,8 @@ public class GameController extends Thread{
 	private ObjectPlacementList newObjects;
 	private int [] deadSnakeDelays;
 	private int [] skipSteps;
+	private int fruitsNeeded;
+	private boolean [] growSnakes;
 	
 	private static final int SNAKE_DEAD_DELAY_MS=2000;
 	private static final int SNAKE_START_DELAY_MS=500;
@@ -47,6 +49,9 @@ public class GameController extends Thread{
 		snakeDirections=new Snake.Direction[users.length];
 		deadSnakeDelays=new int[users.length];
 		skipSteps=new int[users.length];
+		growSnakes=new boolean[users.length];
+		fruitsNeeded=users.length;
+		
 		for (int a=0; a<snakes.length; a++){
 			snakes[a]=new Snake(game.context);
 			snakes[a].setColor(users[a].color);
@@ -115,10 +120,7 @@ public class GameController extends Thread{
 		return null;		
 	}
 	
-	private void generatePlacements(){
-		if (game.isServer==false)
-			return;
-		
+	private void placeDeadSnakes(){
 		for (int a=0; a<snakes.length; a++){
 			if (snakes[a].isDead()){
 				if (deadSnakeDelays[a]!=0)
@@ -131,7 +133,7 @@ public class GameController extends Thread{
 				boolean swapPoints=false;
 				
 			
-				if (random.nextInt(2)==0){
+				if (random.nextBoolean()==false){
 					dx=random.nextInt(2)*2-1;
 				} else {
 					dy=random.nextInt(2)*2-1;
@@ -171,10 +173,32 @@ public class GameController extends Thread{
 				ObjectPool.getInstance().putPoint(p);
 			}
 		}
+	}
+	
+	private void placeFruits(){
+		for (; fruitsNeeded>0; fruitsNeeded--){
+				Point p=getRandomPlacement(2*2);
+				
+				NewObjectPlacement fruit=ObjectPool.getInstance().getNewObjectPlacement();
+				fruit.type=NewObjectPlacement.Type.FRUIT;
+				fruit.user=0;
+				fruit.position.set(p.x, p.y);
+				
+				game.networkManager.putNewObjects(fruit);
+				ObjectPool.getInstance().putPoint(p);
+		}
+	}
+	
+	private void generatePlacements(){
+		if (game.isServer==false)
+			return;
+		
+		placeDeadSnakes();
+		placeFruits();
 	}	
 	
 	
-	void mergeNewObjects(){
+	private void mergeNewObjects(){
 		game.networkManager.getNewObjects(newObjects);
 		
 		while (!newObjects.isEmpty()){
@@ -185,6 +209,13 @@ public class GameController extends Thread{
 					snakes[o.user].addPoint(o.position);
 					snakes[o.user].setDead(false);
 					skipSteps[o.user]=SNAKE_START_DELAY_MS/game.settings.stepTime;
+					break;
+				case FRUIT:
+					Fruit f=ObjectPool.getInstance().getFruit(game.context);
+					f.setPosition(o.position);
+					game.renderer.addRenderable(f);
+					collectables.add(f);
+					break;
 				default:
 					break;
 			}
@@ -193,12 +224,12 @@ public class GameController extends Thread{
 		}
 	}
 	
-	void dieSnake(int index){
+	private void dieSnake(int index){
 		snakes[index].setDead(true);
 		deadSnakeDelays[index]=SNAKE_DEAD_DELAY_MS/game.settings.stepTime;
 	}
 	
-	void moveSnakes(){
+	private void moveSnakes(){
 		for (int a=0; a<snakes.length; a++){
 			if (!snakes[a].isSnakeValid())
 				continue;
@@ -208,11 +239,11 @@ public class GameController extends Thread{
 				continue;
 			}
 			
-			snakes[a].move(snakeDirections[a], false);
+			snakes[a].move(snakeDirections[a], growSnakes[a]);
 		}
 	}
 	
-	void wallDetect(){
+	private void wallDetect(){
 		for (int a=0; a<snakes.length; a++){
 			if (!snakes[a].isSnakeValid())
 				continue;
@@ -224,8 +255,39 @@ public class GameController extends Thread{
 		}
 	}
 	
-	void collisionDetect(){
+	private void collectableCollected(Collectable c){
+		game.renderer.removeRenderable(c);
+		collectables.remove(c);
+		
+		if (c instanceof Fruit)
+			ObjectPool.getInstance().putFruit((Fruit)c);
+	}
+	
+	
+	private void collectableDetect(){
+		for (int a=0; a<snakes.length; a++){
+			growSnakes[a]=false;
+			
+			Point nextPos=snakes[a].getFuturePosition(snakeDirections[a]);
+			Collectable collected=collectables.findByPos(nextPos);
+			
+			ObjectPool.getInstance().putPoint(nextPos);
+			
+			if (collected!=null){
+				if (collected instanceof Fruit){
+					growSnakes[a]=true;
+					fruitsNeeded++;
+				}
+				
+				collectableCollected(collected);
+			}
+			
+		}
+	}
+	
+	private void collisionDetect(){
 		wallDetect();
+		collectableDetect();
 	}
 	
 	void updateDeadSnakeDelays(){
@@ -240,7 +302,7 @@ public class GameController extends Thread{
 		}
 	}
 	
-	void waitForNewTimeframe(){
+	private void waitForNewTimeframe(){
 		long endTime=game.networkManager.getFrameStartTimeInMills()+game.settings.stepTime;
 		
 		while (true){
