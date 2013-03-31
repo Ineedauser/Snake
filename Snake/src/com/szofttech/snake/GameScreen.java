@@ -25,8 +25,8 @@ public class GameScreen extends Activity {
 		//game.settings.height=10;
 		//game.settings.width=15;
 		game.settings.stepTime=200;
-		game.settings.starProbability=0.02f;
-		game.settings.skullProbability=0.02f;
+		game.settings.starProbability=0.005f;
+		game.settings.skullProbability=0.01f;
 		game.context=this;
 
 		

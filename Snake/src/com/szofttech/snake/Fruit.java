@@ -1,5 +1,7 @@
 package com.szofttech.snake;
 
+import java.util.Random;
+
 import android.content.Context;
 
 public class Fruit extends Collectable{	
@@ -20,6 +22,15 @@ public class Fruit extends Collectable{
 	@Override
 	public boolean isGrowNeeded() {
 		return true;
+	}
+
+	@Override
+	public boolean isTimedOut() {
+		return false;
+	}
+
+	@Override
+	public void setTimeout(Random random) {
 	}
 
 }

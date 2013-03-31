@@ -1,12 +1,17 @@
 package com.szofttech.snake;
 
+import java.util.Iterator;
 import java.util.Random;
 
 import android.graphics.Color;
 import android.graphics.Point;
+import android.util.Log;
 
 public class GameController extends Thread{
 	private final Game game;
+	
+	private final int MAX_SKULLS=10;
+	private final int MAX_STARS=10;
 	
 	private Snake [] snakes;
 	private User [] users;
@@ -22,6 +27,9 @@ public class GameController extends Thread{
 	private static final int SNAKE_START_DELAY_MS=500;
 	
 	private static float KEEP_PERCENT_OF_SCORES_ON_WALL_COLLISION=0.8f;
+	
+	private int starCount;
+	private int skullCount;
 	
 	private Random random;
 	private Random skullRandom;
@@ -58,7 +66,8 @@ public class GameController extends Thread{
 		skipSteps=new int[users.length];
 		growSnakes=new boolean[users.length];
 		fruitsNeeded=users.length;
-		
+		skullCount=0;
+		starCount=0;
 		for (int a=0; a<snakes.length; a++){
 			snakes[a]=new Snake(game.context);
 			snakes[a].setColor(users[a].color);
@@ -201,14 +210,18 @@ public class GameController extends Thread{
 	}
 	
 	private void placeStars(){
-		if (starRandom.nextFloat()<game.settings.starProbability){
-			placeOnRandomCoordinate(NewObjectPlacement.Type.STAR, 2*2);
+		if (starCount<MAX_STARS){
+			if (starRandom.nextFloat()<game.settings.starProbability){
+				placeOnRandomCoordinate(NewObjectPlacement.Type.STAR, 2*2);
+			}
 		}
 	}
 	
 	private void placeSkulls(){
-		if (skullRandom.nextFloat()<game.settings.starProbability){
-			placeOnRandomCoordinate(NewObjectPlacement.Type.SKULL, 2*2);
+		if (skullCount<MAX_SKULLS){
+			if (skullRandom.nextFloat()<game.settings.starProbability){
+				placeOnRandomCoordinate(NewObjectPlacement.Type.SKULL, 2*2);
+			}
 		}
 	}
 	
@@ -244,14 +257,18 @@ public class GameController extends Thread{
 				case SKULL:
 					Skull s=ObjectPool.getInstance().getSkull(game.context);
 					s.setPosition(o.position);
+					s.setTimeout(random);
 					game.renderer.addRenderable(s);
 					collectables.add(s);
+					skullCount++;
 					break;
 				case STAR:
 					Star star=ObjectPool.getInstance().getStar(game.context);
 					star.setPosition(o.position);
+					star.setTimeout(random);
 					game.renderer.addRenderable(star);
 					collectables.add(star);
+					starCount++;
 					break;
 				default:
 					break;
@@ -296,13 +313,7 @@ public class GameController extends Thread{
 	private void collectableCollected(Collectable c){
 		game.renderer.removeRenderable(c);
 		collectables.remove(c);
-		
-		if (c instanceof Fruit)
-			ObjectPool.getInstance().putFruit((Fruit)c);
-		else if (c instanceof Skull)
-			ObjectPool.getInstance().putSkull((Skull)c);
-		else if (c instanceof Star)
-			ObjectPool.getInstance().putStar((Star)c);
+		ObjectPool.getInstance().putCollectable(c);
 	}
 	
 	
@@ -373,6 +384,26 @@ public class GameController extends Thread{
 		}
 	}
 	
+	private void decreaseCollectableCount(final Collectable c){
+		if (c instanceof Star)
+			starCount--;
+		else if (c instanceof Skull)
+			skullCount--;
+	}
+	
+	private void removeTimedOutCollectables(){
+		Iterator<Collectable> i= collectables.iterator();
+		while (i.hasNext()){
+			Collectable c=i.next();
+			if (c.isTimedOut()){
+				i.remove();
+				game.renderer.removeRenderable(c);
+				decreaseCollectableCount(c);
+				ObjectPool.getInstance().putCollectable(c);
+			}
+		}
+	}
+	
 	@Override
     public void run(){
 		generatePlacements();
@@ -382,6 +413,7 @@ public class GameController extends Thread{
 			waitForNewTimeframe();
 		
 			game.networkManager.getSnakeDirections(snakeDirections);
+			removeTimedOutCollectables();
 			updateDeadSnakeDelays();
 			generatePlacements();
 			mergeNewObjects();

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import android.graphics.Point;
+import android.util.Log;
 
 public class CollectableList extends ArrayList<Collectable> {
 	private static final long serialVersionUID = 2271960335980929177L;
@@ -38,5 +39,6 @@ public class CollectableList extends ArrayList<Collectable> {
 		
 		return null;
 	}
+	
 	
 }

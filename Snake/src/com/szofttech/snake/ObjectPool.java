@@ -94,6 +94,17 @@ public class ObjectPool {
 		skullPool.push(f);
 	}
 	
+	public void putCollectable(Collectable c){
+		if (c instanceof Fruit)
+			putFruit((Fruit)c);
+		else if (c instanceof Skull)
+			putSkull((Skull)c);
+		else if (c instanceof Star)
+			putStar((Star)c);
+		else
+			throw new IllegalArgumentException("Invalid collectable type");
+	}
+	
 	void clear(){
 		pointPool.clear();
 		newObjectPlacementPool.clear();

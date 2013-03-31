@@ -1,6 +1,7 @@
 package com.szofttech.snake;
 
 import java.nio.FloatBuffer;
+import java.util.Random;
 
 import android.content.Context;
 import android.graphics.Point;
@@ -45,6 +46,8 @@ public abstract class Collectable extends ActiveGameObject{
 	
 	abstract public int collectedScoreTransform(int oldScore);
 	abstract public boolean isGrowNeeded();
+	abstract public boolean isTimedOut();
+	abstract public void setTimeout(final Random random);
 	
 	
 	void buildVertexData(){
