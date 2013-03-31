@@ -21,7 +21,11 @@ public class GameController extends Thread{
 	private static final int SNAKE_DEAD_DELAY_MS=2000;
 	private static final int SNAKE_START_DELAY_MS=500;
 	
+	private static float KEEP_PERCENT_OF_SCORES_ON_WALL_COLLISION=0.8f;
+	
 	private Random random;
+	private Random skullRandom;
+	private Random starRandom;
 	
 	private volatile boolean running;
 	
@@ -34,6 +38,9 @@ public class GameController extends Thread{
 		running=true;
 		
 		random=new Random(System.currentTimeMillis());
+		starRandom=new Random(System.currentTimeMillis()+Math.round(random.nextFloat()*100.0f));
+		skullRandom=new Random(System.currentTimeMillis()+Math.round(random.nextFloat()*100.0f));
+		
 		collectables=new CollectableList();
 		newObjects=new ObjectPlacementList();
 		
@@ -175,17 +182,33 @@ public class GameController extends Thread{
 		}
 	}
 	
+	private void placeOnRandomCoordinate(NewObjectPlacement.Type type, int minDistanceSquared){
+		Point p=getRandomPlacement(minDistanceSquared);
+		
+		NewObjectPlacement fruit=ObjectPool.getInstance().getNewObjectPlacement();
+		fruit.type=type;
+		fruit.user=0;
+		fruit.position.set(p.x, p.y);
+		
+		game.networkManager.putNewObjects(fruit);
+		ObjectPool.getInstance().putPoint(p);
+	}
+	
 	private void placeFruits(){
 		for (; fruitsNeeded>0; fruitsNeeded--){
-				Point p=getRandomPlacement(2*2);
-				
-				NewObjectPlacement fruit=ObjectPool.getInstance().getNewObjectPlacement();
-				fruit.type=NewObjectPlacement.Type.FRUIT;
-				fruit.user=0;
-				fruit.position.set(p.x, p.y);
-				
-				game.networkManager.putNewObjects(fruit);
-				ObjectPool.getInstance().putPoint(p);
+			placeOnRandomCoordinate(NewObjectPlacement.Type.FRUIT, 2*2);
+		}
+	}
+	
+	private void placeStars(){
+		if (starRandom.nextFloat()<game.settings.starProbability){
+			placeOnRandomCoordinate(NewObjectPlacement.Type.STAR, 2*2);
+		}
+	}
+	
+	private void placeSkulls(){
+		if (skullRandom.nextFloat()<game.settings.starProbability){
+			placeOnRandomCoordinate(NewObjectPlacement.Type.SKULL, 2*2);
 		}
 	}
 	
@@ -195,6 +218,8 @@ public class GameController extends Thread{
 		
 		placeDeadSnakes();
 		placeFruits();
+		placeStars();
+		placeSkulls();
 	}	
 	
 	
@@ -215,6 +240,18 @@ public class GameController extends Thread{
 					f.setPosition(o.position);
 					game.renderer.addRenderable(f);
 					collectables.add(f);
+					break;
+				case SKULL:
+					Skull s=ObjectPool.getInstance().getSkull(game.context);
+					s.setPosition(o.position);
+					game.renderer.addRenderable(s);
+					collectables.add(s);
+					break;
+				case STAR:
+					Star star=ObjectPool.getInstance().getStar(game.context);
+					star.setPosition(o.position);
+					game.renderer.addRenderable(star);
+					collectables.add(star);
 					break;
 				default:
 					break;
@@ -250,6 +287,7 @@ public class GameController extends Thread{
 			
 			Point pos=snakes[a].getFuturePosition(snakeDirections[a]);
 			if (!CoordinateManager.getInstance().isValidPosition(pos)){
+				users[a].score*=KEEP_PERCENT_OF_SCORES_ON_WALL_COLLISION;
 				dieSnake(a);
 			}
 		}
@@ -261,6 +299,10 @@ public class GameController extends Thread{
 		
 		if (c instanceof Fruit)
 			ObjectPool.getInstance().putFruit((Fruit)c);
+		else if (c instanceof Skull)
+			ObjectPool.getInstance().putSkull((Skull)c);
+		else if (c instanceof Star)
+			ObjectPool.getInstance().putStar((Star)c);
 	}
 	
 	
@@ -273,13 +315,25 @@ public class GameController extends Thread{
 			
 			ObjectPool.getInstance().putPoint(nextPos);
 			
+			
+			boolean dead=false;
+			
 			if (collected!=null){
+				users[a].score=collected.collectedScoreTransform(users[a].score);
+				growSnakes[a]=collected.isGrowNeeded();
+				
 				if (collected instanceof Fruit){
-					growSnakes[a]=true;
 					fruitsNeeded++;
+				} else if (collected instanceof Skull){
+					dead=true;
 				}
 				
 				collectableCollected(collected);
+				
+				if (dead){
+					snakes[a].move(snakeDirections[a], false);
+					dieSnake(a);
+				}
 			}
 			
 		}

@@ -8,6 +8,8 @@ import android.content.Context;
 import android.opengl.Matrix;
 
 public abstract class Renderable{
+	public long glSyncTime;
+	
 	protected final int BYTES_PER_FLOAT = 4;
 	
 	protected final Context appContext;
@@ -16,6 +18,7 @@ public abstract class Renderable{
 	
 	public Renderable(final Context appContext){
 		this.appContext=appContext;
+		glSyncTime=0;
 		Matrix.setIdentityM(modelMatrix, 0);
 	}	
 	

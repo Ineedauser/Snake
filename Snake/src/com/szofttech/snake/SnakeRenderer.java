@@ -31,6 +31,9 @@ public class SnakeRenderer implements GLSurfaceView.Renderer {
 	
 	private final Context appContext;
 	
+	private long glSyncTime=0;
+	
+	
 	
 	
 	public void addRenderable(Renderable object){
@@ -76,12 +79,13 @@ public class SnakeRenderer implements GLSurfaceView.Renderer {
 		Matrix.setLookAtM(mViewMatrix, 0, eyeX, eyeY, eyeZ, lookX, lookY, lookZ, upX, upY, upZ);
 
 		TextureTable.init(appContext);
-		
+		glSyncTime++;
 		synchronized(objectList){
 			Iterator<Renderable> itr = objectList.iterator();
 			while(itr.hasNext()){
 				Renderable obj=itr.next();
 				obj.init();
+				obj.glSyncTime=glSyncTime;
 			}
 		}
         
@@ -152,6 +156,11 @@ public class SnakeRenderer implements GLSurfaceView.Renderer {
 	        Iterator<Renderable> itr = objectList.iterator();
 	        while(itr.hasNext()){
 	        	Renderable obj=itr.next();
+	        	
+	        	if (obj.glSyncTime!=glSyncTime){
+					obj.init();
+					obj.glSyncTime=glSyncTime;
+				}
 	        	
 	        	obj.useProgram();
 	        	

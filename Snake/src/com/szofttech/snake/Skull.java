@@ -14,4 +14,14 @@ public class Skull extends Collectable{
 		return TextureTable.SKULL;
 	}
 
+	@Override
+	public int collectedScoreTransform(int oldScore) {
+		return Math.round(0.5f*oldScore);
+	}
+
+	@Override
+	public boolean isGrowNeeded() {
+		return false;
+	}
+
 }

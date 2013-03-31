@@ -9,6 +9,8 @@ public class ObjectPool {
 	private LinkedList <Point> pointPool;
 	private LinkedList <NewObjectPlacement> newObjectPlacementPool;
 	private LinkedList <Fruit> fruitPool;
+	private LinkedList <Skull> skullPool;
+	private LinkedList <Star> starPool;
 	
 	static private ObjectPool instance=null;
 	
@@ -16,6 +18,8 @@ public class ObjectPool {
 		pointPool=new LinkedList<Point>();
 		newObjectPlacementPool=new LinkedList<NewObjectPlacement>();
 		fruitPool=new LinkedList<Fruit>();
+		skullPool=new LinkedList<Skull>();
+		starPool=new LinkedList<Star>();
 	}
 	
 	
@@ -68,9 +72,33 @@ public class ObjectPool {
 		fruitPool.push(f);
 	}
 	
+	public Star getStar(final Context appContext){
+		if (starPool.isEmpty()){
+			return new Star(appContext);
+		} else
+			return starPool.pop();
+	}
+	
+	public void putStar(Star f){
+		starPool.push(f);
+	}
+	
+	public Skull getSkull(final Context appContext){
+		if (skullPool.isEmpty()){
+			return new Skull(appContext);
+		} else
+			return skullPool.pop();
+	}
+	
+	public void putSkull(Skull f){
+		skullPool.push(f);
+	}
+	
 	void clear(){
 		pointPool.clear();
 		newObjectPlacementPool.clear();
 		fruitPool.clear();
+		skullPool.clear();
+		starPool.clear();
 	}
 }

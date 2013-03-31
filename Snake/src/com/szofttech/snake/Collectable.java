@@ -43,6 +43,9 @@ public abstract class Collectable extends ActiveGameObject{
 		return ObjectPool.getInstance().copyPoint(position);
 	}
 	
+	abstract public int collectedScoreTransform(int oldScore);
+	abstract public boolean isGrowNeeded();
+	
 	
 	void buildVertexData(){
 		//One cell sized box.

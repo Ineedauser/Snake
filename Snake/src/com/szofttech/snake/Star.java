@@ -13,4 +13,14 @@ public class Star extends Collectable{
 		return TextureTable.STAR;
 	}
 
+	@Override
+	public int collectedScoreTransform(int oldScore) {
+		return Math.round(1.2f*oldScore);
+	}
+
+	@Override
+	public boolean isGrowNeeded() {
+		return true;
+	}
+
 }

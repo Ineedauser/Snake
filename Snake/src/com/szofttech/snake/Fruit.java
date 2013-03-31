@@ -12,4 +12,14 @@ public class Fruit extends Collectable{
 		return TextureTable.CHERRY;
 	}
 
+	@Override
+	public int collectedScoreTransform(int oldScore) {
+		return oldScore+10;
+	}
+
+	@Override
+	public boolean isGrowNeeded() {
+		return true;
+	}
+
 }
