@@ -10,7 +10,7 @@ import com.szofttech.snake.Snake.Direction;
  * Dummy network emulator for single player mode.
  * 
  */
-public class DummyNetworkManager extends NetworkManager {
+public class DummyNetworkManager implements NetworkManager {
 	private Direction lastDirection;
 	private LinkedList<NewObjectPlacement> objects;
 	private User [] users;

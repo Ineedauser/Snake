@@ -1,6 +1,6 @@
 package com.szofttech.snake;
 
-public abstract class NetworkManager {
+public interface NetworkManager {
 	public abstract void getSnakeDirections(Snake.Direction [] destionation);
 	public abstract void putLocalDirection(Snake.Direction direction);
 	

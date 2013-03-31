@@ -5,7 +5,6 @@ import java.util.Random;
 
 import android.graphics.Color;
 import android.graphics.Point;
-import android.util.Log;
 
 public class GameController extends Thread{
 	private final Game game;
