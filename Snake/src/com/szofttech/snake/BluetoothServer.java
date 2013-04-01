@@ -56,7 +56,7 @@ public class BluetoothServer {
             		try {
 	            		if (sockets[i]==null){
 	            			Log.wtf(TAG, "Running accept on "+i);
-	            			serverSocket = bluetoothAdapter.listenUsingRfcommWithServiceRecord(NAME, uuids[i]);
+	            			serverSocket = bluetoothAdapter.listenUsingInsecureRfcommWithServiceRecord(NAME, uuids[i]);
 	            			Log.wtf(TAG, "Server socket created for "+i);
 	            			socket = serverSocket.accept();
 	            			Log.wtf(TAG, "!!!!! ACCEPTED "+i);
@@ -141,11 +141,15 @@ public class BluetoothServer {
 	public void startListening(){
 		closeClients();
 		acceptThread=new AcceptThread();
-		acceptThread.run();
+		acceptThread.start();
 	}
 	
 	public void stopListening(){
 		acceptThread.stopMe();
+		try {
+			acceptThread.join();
+		} catch (InterruptedException e) {
+		}
 		acceptThread=null;
 	}
 	

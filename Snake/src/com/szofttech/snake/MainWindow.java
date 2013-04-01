@@ -11,13 +11,14 @@ import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
+import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 
 public class MainWindow extends Activity{
-	//private static final String TAG="Snake.MainWindow";
+	private static final String TAG="Snake.MainWindow";
 	
 	private final int BLUETOOTH_ENABLE_TIMEOUT=300;
 	private final int BLUETOOTH_DISCOVERABLE_RESULT=1;
@@ -29,13 +30,16 @@ public class MainWindow extends Activity{
 	BluetoothServer server;
 	
 	private ProgressDialog busyDialog;
+	private ClientNetworkManager clientNetworkManager;
 	
 	
 	
 	private class ConnectToServerThread extends AsyncTask<BluetoothDevice, Void, BluetoothClientSocket> {	
 		@Override
 		protected BluetoothClientSocket doInBackground(BluetoothDevice... devs) {
-			return BluetoothClientSocket.createClientSocket(devs[0]);
+			BluetoothClientSocket result=BluetoothClientSocket.createClientSocket(devs[0]);
+			Log.w(TAG,"Client socket created!");
+			return result;
 		}
 		
 		@Override
@@ -46,10 +50,14 @@ public class MainWindow extends Activity{
 			
 		@Override
 		protected void onPostExecute(BluetoothClientSocket socket) {
+			Log.w(TAG,"onPostExecute reached");
 			busyDialog.hide();
 			if (socket==null){
 				Helpers.showErrorMessage(MainWindow.this, R.string.server_connect_failed_message, R.string.failed_to_connect_title);
 			} else {
+				Log.w("                 SNAKE             ","Connected.");
+				//clientNetworkManager=new ClientNetworkManager();
+				//clientNetworkManager.login(socket);
 			}
 	    }
 	}
@@ -71,10 +79,16 @@ public class MainWindow extends Activity{
 		startActivityForResult(scannerIntent,BLUETOOTH_SELECTED);
 	}
 	
+	void stopServer(){
+		if (server!=null){
+			server.stopListening();
+			server.closeClients();
+		}
+	}
+	
 	void startServerGame(){
-		if (server==null)
-			server=new BluetoothServer();
-		
+		stopServer();
+		server=new BluetoothServer();
 		server.startListening();
 	}
 	
@@ -182,6 +196,13 @@ public class MainWindow extends Activity{
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.activity_main_window, menu);
         return true;
+    }
+    
+    
+    @Override
+    public void onDestroy() {
+    	stopServer();
+    	super.onDestroy();
     }
 
 	

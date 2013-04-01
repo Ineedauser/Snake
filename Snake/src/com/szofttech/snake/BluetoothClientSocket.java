@@ -15,8 +15,9 @@ public class BluetoothClientSocket extends SnakeBluetoothSocket{
 		BluetoothSocket socket = null;
 		for (int uuid=0; uuid<BluetoothServer.MAX_CONNECTIONS; uuid++){
         	try {
-        		socket = device.createRfcommSocketToServiceRecord(BluetoothServer.uuids[uuid]);
+        		socket = device.createInsecureRfcommSocketToServiceRecord(BluetoothServer.uuids[uuid]);
         		socket.connect();
+        		Log.w(TAG, "Connecte to server with uuid "+uuid);
         		break;
         	} catch (IOException e) {
         		socket=null;
@@ -24,6 +25,7 @@ public class BluetoothClientSocket extends SnakeBluetoothSocket{
         	}
         }
 		
+		Log.w(TAG, "UUID search returned.");
 		BluetoothClientSocket result=null;
 		if (socket!=null){
 			try {
@@ -32,6 +34,10 @@ public class BluetoothClientSocket extends SnakeBluetoothSocket{
 			}
 		}
 		
+		if (result==null)
+			Log.w(TAG, "Returning null.");
+		else
+			Log.w(TAG, "Returning non null.");
 		return result;
 	}
 	
