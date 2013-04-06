@@ -16,7 +16,6 @@ public class GameController extends Thread{
 	private User [] users;
 	private Snake.Direction [] snakeDirections;
 	private CollectableList collectables;
-	private ObjectPlacementList newObjects;
 	private int [] deadSnakeDelays;
 	private int [] skipSteps;
 	private int fruitsNeeded;
@@ -49,7 +48,6 @@ public class GameController extends Thread{
 		skullRandom=new Random(System.currentTimeMillis()+Math.round(random.nextFloat()*100.0f));
 		
 		collectables=new CollectableList();
-		newObjects=new ObjectPlacementList();
 		
 		
 		CoordinateManager.getInstance().resizeMap(game.settings.height,game.settings.width);
@@ -236,7 +234,8 @@ public class GameController extends Thread{
 	
 	
 	private void mergeNewObjects(){
-		game.networkManager.getNewObjects(newObjects);
+		
+		ObjectPlacementList newObjects=game.networkManager.getNewObjects();
 		
 		while (!newObjects.isEmpty()){
 			NewObjectPlacement o=newObjects.pop();

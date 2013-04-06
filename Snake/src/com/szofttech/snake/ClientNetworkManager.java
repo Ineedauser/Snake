@@ -15,6 +15,9 @@ public class ClientNetworkManager implements NetworkManager {
 	
 	public boolean error; 
 	
+	
+	
+	
 	private class ReceiveThread extends Thread{
 		private boolean running;
 
@@ -29,15 +32,6 @@ public class ClientNetworkManager implements NetworkManager {
 		
 		@Override
 		public void run(){
-			try {
-				NetworkPacket packet=(NetworkPacket)socket.read();
-			} catch (IOException e) {
-				Log.e(TAG, "I/O Exception reading socket");
-				error=true;
-			} catch (ClassNotFoundException e) {
-				Log.e(TAG, "ClassNotFoundException reading socket");
-				error=true;
-			}
 						
 		}
 	}
@@ -99,9 +93,9 @@ public class ClientNetworkManager implements NetworkManager {
 	}
 
 	@Override
-	public void getNewObjects(ObjectPlacementList objects) {
+	public ObjectPlacementList getNewObjects() {
 		// TODO Auto-generated method stub
-
+		return null;
 	}
 
 	@Override

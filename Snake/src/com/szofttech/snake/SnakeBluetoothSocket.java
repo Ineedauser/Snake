@@ -51,4 +51,8 @@ public class SnakeBluetoothSocket {
 	public Object read() throws IOException, ClassNotFoundException{	
 		return inputStream.readObject();
 	}
+	
+	public void flush() throws IOException{
+		outputStream.flush();
+	}
 }

@@ -11,7 +11,6 @@ public class ObjectPool {
 	private LinkedList <Fruit> fruitPool;
 	private LinkedList <Skull> skullPool;
 	private LinkedList <Star> starPool;
-	private LinkedList <NetworkPacket> networkPacketPool;
 	
 	static private ObjectPool instance=null;
 	
@@ -21,7 +20,6 @@ public class ObjectPool {
 		fruitPool=new LinkedList<Fruit>();
 		skullPool=new LinkedList<Skull>();
 		starPool=new LinkedList<Star>();
-		networkPacketPool=new LinkedList<NetworkPacket>();
 	}
 	
 	
@@ -109,16 +107,8 @@ public class ObjectPool {
 	
 	
 	
-	public NetworkPacket getNetworkPacket(){
-		if (networkPacketPool.isEmpty()){
-			return new NetworkPacket();
-		} else
-			return networkPacketPool.pop();
-	}
 	
-	public void putNetworkPacket(NetworkPacket packet){
-		networkPacketPool.push(packet);
-	}
+	
 	
 	void clear(){
 		pointPool.clear();

@@ -7,7 +7,7 @@ public interface NetworkManager {
 	public abstract long getFrameStartTimeInMills();
 	
 	public abstract void putNewObjects(NewObjectPlacement... object);
-	public abstract void getNewObjects(ObjectPlacementList objects);
+	public abstract ObjectPlacementList getNewObjects();
 	
 	public abstract User [] getUserList();
 }
