@@ -64,6 +64,7 @@ public class BluetoothServer {
 	            				synchronized(sockets){
 	            					connectedClientCount++;
 	            					sockets[i]=new SnakeBluetoothSocket(socket);
+	            					((ServerNetworkManager)(Game.getInstance().networkManager)).registerClient(sockets[i]);
 	            				}
 	            			}
 	            			serverSocket.close();
@@ -178,14 +179,4 @@ public class BluetoothServer {
 		
 		return result;
 	}
-	
-	/*int [] getClientList(){
-		synchronized (sockets){
-			int [] result=new int[connectedClientCount];
-			int pos=0;
-			for (int a=0; a<MAX_CONNECTIONS; a++){
-				
-			}
-		}
-	}*/
 }

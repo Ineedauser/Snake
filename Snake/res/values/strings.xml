@@ -21,6 +21,14 @@
     <string name="rescan_button_text">Tap to rescan</string>
     <string name="failed_to_connect_title">Failed to connect</string>
     <string name="server_connect_failed_message">Failed to connect to server. Either the server is not running on remote device or it is full.</string>
-    <string name="connecting_wait_text">Connecting...</string>
+    <string name="connecting_wait_text">Connecting &#8230;</string>
+    <string name="title_activity_settings">SettingsActivity</string>
+    <string name="action_settings">Settings</string>
+    <string name="adj_playtime">Round time</string>
+    <string name="adj_snake_speed">Snake speed</string>
+    <string name="adj_bonus_probability">Bonus probability</string>
+    <string name="adj_skull_probability">Skull probability</string>
+    <string name="ok">OK</string>
+    <string name="settings_title">Game settings</string>
 
 </resources>

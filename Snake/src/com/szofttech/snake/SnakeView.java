@@ -1,5 +1,6 @@
 package com.szofttech.snake;
 
+import android.content.Context;
 import android.graphics.PointF;
 import android.opengl.GLSurfaceView;
 import android.view.MotionEvent;
@@ -9,8 +10,8 @@ public class SnakeView extends GLSurfaceView {
 	private static final float TOUCH_THRESHOLD=1.5f;
 	private static final int MIN_DISTANCE=10;
 	
-	public SnakeView() {
-		super(Game.getInstance().context);
+	public SnakeView(Context c) {
+		super(c);
 		downPoint=new PointF();
 		
 		setEGLContextClientVersion(2);

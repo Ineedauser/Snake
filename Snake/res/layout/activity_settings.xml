@@ -1,0 +1,96 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android1="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context=".SettingsActivity" >
+
+    <LinearLayout
+        android1:layout_width="match_parent"
+        android1:layout_height="wrap_content"
+        android1:orientation="vertical" >
+
+        <TextView
+            android1:id="@+id/textView1"
+            android1:layout_width="match_parent"
+            android1:layout_height="wrap_content"
+            android1:text="@string/adj_playtime"
+            android1:textAppearance="?android:attr/textAppearanceMedium" />
+
+        <LinearLayout
+            android1:layout_width="match_parent"
+            android1:layout_height="wrap_content" >
+
+            <SeekBar
+                android1:id="@+id/seekBar1"
+                android1:layout_width="wrap_content"
+                android1:layout_height="wrap_content"
+                android1:layout_weight="0.45"
+                android1:max="14"
+                android1:progress="5" />
+
+            <TextView
+                android1:id="@+id/textView3"
+                android1:layout_width="46dp"
+                android1:layout_height="wrap_content"
+                android1:layout_gravity="right|center_vertical"
+                android1:layout_weight="0.01"
+                android1:text="5min"
+                android1:textAppearance="?android:attr/textAppearanceSmall" />
+        </LinearLayout>
+
+        <TextView
+            android1:id="@+id/textView2"
+            android1:layout_width="match_parent"
+            android1:layout_height="wrap_content"
+            android1:paddingTop="20dp"
+            android1:text="@string/adj_snake_speed"
+            android1:textAppearance="?android:attr/textAppearanceMedium" />
+
+        <SeekBar
+            android1:id="@+id/SeekBar01"
+            android1:layout_width="match_parent"
+            android1:layout_height="wrap_content" />
+
+        <TextView
+            android1:id="@+id/TextView01"
+            android1:layout_width="match_parent"
+            android1:layout_height="wrap_content"
+            android1:paddingTop="20dp"
+            android1:text="@string/adj_bonus_probability"
+            android1:textAppearance="?android:attr/textAppearanceMedium" />
+
+        <SeekBar
+            android1:id="@+id/SeekBar02"
+            android1:layout_width="match_parent"
+            android1:layout_height="wrap_content" />
+
+        <TextView
+            android1:id="@+id/TextView02"
+            android1:layout_width="match_parent"
+            android1:layout_height="wrap_content"
+            android1:paddingTop="20dp"
+            android1:text="@string/adj_skull_probability"
+            android1:textAppearance="?android:attr/textAppearanceMedium" />
+
+        <SeekBar
+            android1:id="@+id/SeekBar03"
+            android1:layout_width="match_parent"
+            android1:layout_height="wrap_content" />
+    </LinearLayout>
+
+    <Button
+        android1:id="@+id/settingsOkButton"
+        style="?android:attr/buttonStyleSmall"
+        android1:layout_width="match_parent"
+        android1:layout_height="wrap_content"
+        android1:layout_alignParentBottom="true"
+        android1:layout_centerHorizontal="true"
+        android1:text="@string/ok" />
+   
+</RelativeLayout>

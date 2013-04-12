@@ -14,10 +14,10 @@ public class GameScreen extends Activity {
 		super.onCreate(savedInstanceState);
 		
 		
-		
+		Game.getInstance().renderer=new SnakeRenderer(getBaseContext());
 
 		
-		snakeView=new SnakeView();
+		snakeView=new SnakeView(this);
 		setContentView(snakeView);
 		
 		gc=new GameController();

@@ -24,6 +24,8 @@ public class MainWindow extends Activity{
 	private final int BLUETOOTH_DISCOVERABLE_RESULT=1;
 	private final int BLUETOOTH_ENABLE_RESULT=2;
 	private final int BLUETOOTH_SELECTED=3;
+	private final int SETTINGS_FOR_SINGLE=4;
+	private final int SETTINGS_FOR_MULTI=5;
 	
 
 	BluetoothAdapter bluetoothAdapter;
@@ -96,7 +98,6 @@ public class MainWindow extends Activity{
 		Game game=Game.getInstance();
 		game.networkManager=new DummyNetworkManager();
 		game.isServer=true;
-		game.renderer=new SnakeRenderer(getBaseContext());
 		game.settings=new GameSettings();
 		game.settings.height=24;
 		game.settings.width=40;
@@ -137,7 +138,8 @@ public class MainWindow extends Activity{
         //MainWindow windowReference = this;
         testButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-            	startSingleGame();
+            	Intent discoverableIntent = new Intent(getBaseContext(), SettingsActivity.class);
+        		startActivityForResult(discoverableIntent,SETTINGS_FOR_SINGLE);
             }
         });
         
@@ -204,6 +206,11 @@ public class MainWindow extends Activity{
 		      		
                 	showClientListWindow();
                 }
+    			break;
+    			
+    		case (SETTINGS_FOR_SINGLE):
+    			if (resultCode != Activity.RESULT_CANCELED)
+    				startSingleGame();
     			break;
     	}
     }
