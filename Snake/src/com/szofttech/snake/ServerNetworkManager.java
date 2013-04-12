@@ -17,7 +17,7 @@ public class ServerNetworkManager implements NetworkManager {
 	
 	public static enum FlagPacket{NEW_TIMEFRAME, END_GAME}; 
 	
-	void setErrorState(final int id){
+	private void setErrorState(final int id){
 		Log.w(TAG, "Setting error state for socket "+id);
 		
 		socketError[id]=true;
@@ -29,6 +29,10 @@ public class ServerNetworkManager implements NetworkManager {
 			clientSockets[id].close();
 		} catch (IOException e) {
 		}
+		
+		ClientDisconnectPacket packet=new ClientDisconnectPacket();
+		packet.id=id;
+		broadcast(packet);
 	}
 	
 	/**
@@ -41,7 +45,7 @@ public class ServerNetworkManager implements NetworkManager {
 		private static final String TAG="Snake.ServerNetworkManager.ReceiveThread";
 		
 		
-		private boolean running;
+		private volatile boolean running;
 		private final int id;
 		
 		
@@ -55,7 +59,7 @@ public class ServerNetworkManager implements NetworkManager {
 		}
 		
 		public void setErrorState(){
-			stopMe();
+			ServerNetworkManager.this.setErrorState(id);
 		}
 		
 		private void broadcastExceptMe(Object o){
@@ -100,10 +104,11 @@ public class ServerNetworkManager implements NetworkManager {
 			try {
 				packet=clientSockets[id].read();
 			} catch (IOException e) {
-				Log.w(TAG, "I/O Exception reading socket");
+				Log.e(TAG, "I/O Exception reading socket");
 				setErrorState();
 			} catch (ClassNotFoundException e) {
-				throw new RuntimeException("Class not found exception on network socket");
+				Log.e(TAG, "Class not found exception on network socket");
+				setErrorState();
 			}
 			
 			return packet;
@@ -125,6 +130,11 @@ public class ServerNetworkManager implements NetworkManager {
 					processNewUserPacket((UserRegisterPacket)packet);
 				} else if (packet instanceof Snake.Direction){
 					processDirectionPacket((Snake.Direction)packet);
+				} else if (packet instanceof FlagPacket){
+					if (packet.equals(FlagPacket.END_GAME)){
+						Log.w(TAG, "Game ended by user "+id);
+						setErrorState();
+					}
 				}
 			}
 		}
@@ -141,7 +151,7 @@ public class ServerNetworkManager implements NetworkManager {
 		
 		private static final String TAG="Snake.ServerNetworkManager.SendThread";
 		
-		private boolean running;
+		private volatile boolean running;
 		private final int id;
 		
 		private LinkedList<Object> sendList;
@@ -182,9 +192,25 @@ public class ServerNetworkManager implements NetworkManager {
 			}
 		}
 		
+		private void sendUsers(){
+			synchronized (users){
+				for (int a=0; a<userCount; a++){
+					UserRegisterPacket packet=new UserRegisterPacket();
+					packet.color=users[a].color;
+					packet.name=users[a].name;
+					packet.id=a;
+					
+					synchronized (sendList){
+						sendList.add(packet);
+					}
+				}
+			}
+		}
+		
 		@Override
 		public void run(){
 			assignSnakeID();
+			sendUsers();
 			
 			/**
 			 * Process packets received from client.
@@ -390,6 +416,11 @@ public class ServerNetworkManager implements NetworkManager {
 	@Override
 	public User[] getUserList() {
 		return users;
+	}
+
+	@Override
+	public boolean[] getErrorList() {
+		return socketError;
 	}
 
 }

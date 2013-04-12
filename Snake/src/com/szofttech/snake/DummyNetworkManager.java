@@ -14,6 +14,7 @@ public class DummyNetworkManager implements NetworkManager {
 	private Direction lastDirection;
 	private ObjectPlacementList objects;
 	private User [] users;
+	private boolean [] socketError;
 	
 	public DummyNetworkManager(){
 		objects = new ObjectPlacementList();
@@ -24,6 +25,9 @@ public class DummyNetworkManager implements NetworkManager {
 		users[0].color=new GLColor(Color.RED);
 		
 		lastDirection=Direction.UNCHANGED;
+		
+		socketError=new boolean[1];
+		socketError[0]=false;
 	}
 	
 	
@@ -50,7 +54,7 @@ public class DummyNetworkManager implements NetworkManager {
 	@Override
 	public void putNewObjects(NewObjectPlacement... object) {
 		for (int a=0; a<object.length; a++)
-			objects.push(object[a]);		
+			objects.add(object[a]);		
 	}
 
 	@Override
@@ -62,6 +66,12 @@ public class DummyNetworkManager implements NetworkManager {
 	@Override
 	public User[] getUserList() {
 		return users;
+	}
+
+
+	@Override
+	public boolean[] getErrorList() {
+		return socketError;
 	}
 
 }

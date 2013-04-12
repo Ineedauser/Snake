@@ -10,4 +10,6 @@ public interface NetworkManager {
 	public abstract ObjectPlacementList getNewObjects();
 	
 	public abstract User [] getUserList();
+	
+	public abstract boolean [] getErrorList();
 }

@@ -5,8 +5,10 @@ import java.util.Random;
 
 import android.graphics.Color;
 import android.graphics.Point;
+import android.util.Log;
 
 public class GameController extends Thread{
+	private static final String TAG="Snake.GameController";
 	private final Game game;
 	
 	private final int MAX_SKULLS=10;
@@ -20,7 +22,7 @@ public class GameController extends Thread{
 	private int [] skipSteps;
 	private int fruitsNeeded;
 	private boolean [] growSnakes;
-	
+	private boolean [] errors;
 	private static final int SNAKE_DEAD_DELAY_MS=2000;
 	private static final int SNAKE_START_DELAY_MS=500;
 	
@@ -39,8 +41,8 @@ public class GameController extends Thread{
 		running=false;
 	}
 	
-	public GameController(final Game game){
-		this.game=game;
+	public GameController(){
+		game=Game.getInstance();
 		running=true;
 		
 		random=new Random(System.currentTimeMillis());
@@ -49,6 +51,10 @@ public class GameController extends Thread{
 		
 		collectables=new CollectableList();
 		
+		errors=new boolean[BluetoothServer.MAX_CONNECTIONS];
+		for (int a=0; a<errors.length; a++)
+			errors[a]=false;
+			
 		
 		CoordinateManager.getInstance().resizeMap(game.settings.height,game.settings.width);
 		
@@ -135,7 +141,7 @@ public class GameController extends Thread{
 	
 	private void placeDeadSnakes(){
 		for (int a=0; a<snakes.length; a++){
-			if (snakes[a].isDead()){
+			if (snakes[a].isDead() && errors[a]==false){
 				if (deadSnakeDelays[a]!=0)
 					continue;
 				
@@ -317,6 +323,9 @@ public class GameController extends Thread{
 	
 	private void collectableDetect(){
 		for (int a=0; a<snakes.length; a++){
+			if (snakes[a].isDead() || errors[a]==true)
+				continue;
+			
 			growSnakes[a]=false;
 			
 			Point nextPos=snakes[a].getFuturePosition(snakeDirections[a]);
@@ -355,7 +364,7 @@ public class GameController extends Thread{
 	
 	void updateDeadSnakeDelays(){
 		for (int a=0; a<snakes.length; a++){
-			if (deadSnakeDelays[a]==0)
+			if (deadSnakeDelays[a]==0 || errors[a]==true)
 				continue;
 						
 			deadSnakeDelays[a]=deadSnakeDelays[a]-1;
@@ -401,19 +410,32 @@ public class GameController extends Thread{
 			}
 		}
 	}
-	
+
+	private void handleDeadConnections(){
+		boolean[] errors=game.networkManager.getErrorList();
+		for (int a=0; a<errors.length; a++){
+			if (errors[a]!=this.errors[a] && errors[a]==true){
+				game.renderer.removeRenderable(snakes[a]);
+				this.errors[a]=true;
+			}
+		}
+	}
 	@Override
     public void run(){
-		generatePlacements();
-		mergeNewObjects();
 		
 		while (running){
+			generatePlacements();
+			
+			
 			waitForNewTimeframe();
+			
+			
 		
 			game.networkManager.getSnakeDirections(snakeDirections);
+			handleDeadConnections();
 			removeTimedOutCollectables();
 			updateDeadSnakeDelays();
-			generatePlacements();
+			//generatePlacements();
 			mergeNewObjects();
 			collisionDetect();
 			moveSnakes();

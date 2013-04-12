@@ -5,18 +5,16 @@ import android.opengl.GLSurfaceView;
 import android.view.MotionEvent;
 
 public class SnakeView extends GLSurfaceView {
-	private final Game game;
 	private final PointF downPoint;
 	private static final float TOUCH_THRESHOLD=1.5f;
 	private static final int MIN_DISTANCE=10;
 	
-	public SnakeView(final Game game) {
-		super(game.context);
-		this.game=game;
+	public SnakeView() {
+		super(Game.getInstance().context);
 		downPoint=new PointF();
 		
 		setEGLContextClientVersion(2);
-		setRenderer(game.renderer);
+		setRenderer(Game.getInstance().renderer);
 	}
 
 	
@@ -24,6 +22,8 @@ public class SnakeView extends GLSurfaceView {
 	public boolean onTouchEvent(MotionEvent e) {
 		float x = e.getX();
 	    float y = e.getY();
+	    
+	    Game game=Game.getInstance();
 	    
 	    switch (e.getAction()) {
 		    case MotionEvent.ACTION_MOVE:
