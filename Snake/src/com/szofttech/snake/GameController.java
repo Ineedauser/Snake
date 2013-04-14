@@ -208,14 +208,14 @@ public class GameController extends Thread{
 	
 	private void placeFruits(){
 		for (; fruitsNeeded>0; fruitsNeeded--){
-			placeOnRandomCoordinate(NewObjectPlacement.Type.FRUIT, 2*2);
+			placeOnRandomCoordinate(NewObjectPlacement.Type.FRUIT, 3*2);
 		}
 	}
 	
 	private void placeStars(){
 		if (starCount<MAX_STARS){
 			if (starRandom.nextFloat()<game.settings.starProbability){
-				placeOnRandomCoordinate(NewObjectPlacement.Type.STAR, 2*2);
+				placeOnRandomCoordinate(NewObjectPlacement.Type.STAR, 3*2);
 			}
 		}
 	}
@@ -223,7 +223,7 @@ public class GameController extends Thread{
 	private void placeSkulls(){
 		if (skullCount<MAX_SKULLS){
 			if (skullRandom.nextFloat()<game.settings.starProbability){
-				placeOnRandomCoordinate(NewObjectPlacement.Type.SKULL, 2*2);
+				placeOnRandomCoordinate(NewObjectPlacement.Type.SKULL, 3*2);
 			}
 		}
 	}

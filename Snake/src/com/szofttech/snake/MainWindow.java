@@ -98,14 +98,14 @@ public class MainWindow extends Activity{
 		Game game=Game.getInstance();
 		game.networkManager=new DummyNetworkManager();
 		game.isServer=true;
-		game.settings=new GameSettings();
-		game.settings.height=24;
-		game.settings.width=40;
+	/*	game.settings=new GameSettings();
+		game.settings.height=40;
+		game.settings.width=24;
 		//game.settings.height=10;
 		//game.settings.width=15;
 		game.settings.stepTime=200;
 		game.settings.starProbability=0.005f;
-		game.settings.skullProbability=0.01f;
+		game.settings.skullProbability=0.01f;*/
 		game.context=this;
 		
     	Intent intent = new Intent(getBaseContext(), GameScreen.class);

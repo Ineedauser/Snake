@@ -27,7 +27,7 @@
             android1:layout_height="wrap_content" >
 
             <SeekBar
-                android1:id="@+id/seekBar1"
+                android1:id="@+id/timeSeek"
                 android1:layout_width="wrap_content"
                 android1:layout_height="wrap_content"
                 android1:layout_weight="0.45"
@@ -35,12 +35,67 @@
                 android1:progress="5" />
 
             <TextView
-                android1:id="@+id/textView3"
-                android1:layout_width="46dp"
+                android1:id="@+id/timeLabel"
+                android1:layout_width="wrap_content"
                 android1:layout_height="wrap_content"
                 android1:layout_gravity="right|center_vertical"
-                android1:layout_weight="0.01"
+                android1:layout_weight="0.03"
                 android1:text="5min"
+                android1:textAppearance="?android:attr/textAppearanceSmall" />
+
+        </LinearLayout>
+
+        <TextView
+            android1:id="@+id/TextView03"
+            android1:layout_width="match_parent"
+            android1:layout_height="wrap_content"
+            android1:paddingTop="10dp"
+            android1:text="@string/adj_snake_speed"
+            android1:textAppearance="?android:attr/textAppearanceMedium" />
+
+        <LinearLayout
+            android1:layout_width="match_parent"
+            android1:layout_height="wrap_content" >
+
+            <SeekBar
+                android1:id="@+id/dim1Seek"
+                android1:layout_width="wrap_content"
+                android1:layout_height="wrap_content"
+                android1:layout_weight="0.45"
+                android1:max="40"
+                android1:progress="5" />
+
+            <TextView
+                android1:id="@+id/dim1Label"
+                android1:layout_width="wrap_content"
+                android1:layout_height="wrap_content"
+                android1:layout_gravity="right|center_vertical"
+                android1:layout_weight="0.03"
+                android1:text="20"
+                android1:textAppearance="?android:attr/textAppearanceSmall" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android1:layout_width="match_parent"
+            android1:layout_height="wrap_content" >
+
+            <SeekBar
+                android1:id="@+id/dim2Seek"
+                android1:layout_width="wrap_content"
+                android1:layout_height="wrap_content"
+                android1:layout_weight="0.45"
+                android1:max="40"
+                android1:paddingTop="5dp"
+                android1:progress="5" />
+
+            <TextView
+                android1:id="@+id/dim2Label"
+                android1:layout_width="wrap_content"
+                android1:layout_height="wrap_content"
+                android1:layout_gravity="right|center_vertical"
+                android1:layout_weight="0.03"
+                android1:text="20"
                 android1:textAppearance="?android:attr/textAppearanceSmall" />
         </LinearLayout>
 
@@ -48,12 +103,12 @@
             android1:id="@+id/textView2"
             android1:layout_width="match_parent"
             android1:layout_height="wrap_content"
-            android1:paddingTop="20dp"
+            android1:paddingTop="10dp"
             android1:text="@string/adj_snake_speed"
             android1:textAppearance="?android:attr/textAppearanceMedium" />
 
         <SeekBar
-            android1:id="@+id/SeekBar01"
+            android1:id="@+id/speedSeek"
             android1:layout_width="match_parent"
             android1:layout_height="wrap_content" />
 
@@ -61,12 +116,12 @@
             android1:id="@+id/TextView01"
             android1:layout_width="match_parent"
             android1:layout_height="wrap_content"
-            android1:paddingTop="20dp"
+            android1:paddingTop="10dp"
             android1:text="@string/adj_bonus_probability"
             android1:textAppearance="?android:attr/textAppearanceMedium" />
 
         <SeekBar
-            android1:id="@+id/SeekBar02"
+            android1:id="@+id/bonusSeek"
             android1:layout_width="match_parent"
             android1:layout_height="wrap_content" />
 
@@ -74,12 +129,12 @@
             android1:id="@+id/TextView02"
             android1:layout_width="match_parent"
             android1:layout_height="wrap_content"
-            android1:paddingTop="20dp"
+            android1:paddingTop="10dp"
             android1:text="@string/adj_skull_probability"
             android1:textAppearance="?android:attr/textAppearanceMedium" />
 
         <SeekBar
-            android1:id="@+id/SeekBar03"
+            android1:id="@+id/skullSeek"
             android1:layout_width="match_parent"
             android1:layout_height="wrap_content" />
     </LinearLayout>

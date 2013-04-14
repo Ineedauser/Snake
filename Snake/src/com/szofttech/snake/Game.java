@@ -6,6 +6,7 @@ public class Game {
 	private static Game instance=null;
 	
 	private Game(){
+		settings=new GameSettings();
 	}
 	
 	public static Game getInstance(){
