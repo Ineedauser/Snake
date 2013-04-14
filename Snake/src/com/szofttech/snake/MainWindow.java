@@ -26,6 +26,8 @@ public class MainWindow extends Activity{
 	private final int BLUETOOTH_SELECTED=3;
 	private final int SETTINGS_FOR_SINGLE=4;
 	private final int SETTINGS_FOR_MULTI=5;
+	private final int USER_SETTINGS_FOR_CLIENT=6;
+	private final int USER_SETTINGS_FOR_SERVER=7;
 	
 
 	BluetoothAdapter bluetoothAdapter;
@@ -73,7 +75,10 @@ public class MainWindow extends Activity{
 	
 	
 	void startClientGame(BluetoothDevice dev){
-		new ConnectToServerThread().execute(dev);
+		stopServer();
+		//new ConnectToServerThread().execute(dev);
+		Intent userSettingsIntent = new Intent(getBaseContext(), UserListActivity.class);
+		startActivityForResult(userSettingsIntent,USER_SETTINGS_FOR_CLIENT);
 	}
 	
 	void showClientListWindow(){
@@ -90,11 +95,16 @@ public class MainWindow extends Activity{
 	
 	void startServerGame(){
 		stopServer();
-		server=new BluetoothServer();
-		server.startListening();
+	/*	server=new BluetoothServer();
+		server.startListening();*/
+		
+		Intent userSettingsIntent = new Intent(getBaseContext(), UserListActivity.class);
+		startActivityForResult(userSettingsIntent,USER_SETTINGS_FOR_SERVER);
 	}
 	
+
 	void startSingleGame(){
+		stopServer();
 		Game game=Game.getInstance();
 		game.networkManager=new DummyNetworkManager();
 		game.isServer=true;
@@ -194,7 +204,8 @@ public class MainWindow extends Activity{
                     // User did not enable Bluetooth or an error occurred
     				Helpers.showErrorMessage(this,  R.string.bluetooth_must_be_enabled, R.string.bluetooth_not_enabled_title);
                 } else {
-                	startServerGame();
+                	Intent discoverableIntent = new Intent(getBaseContext(), SettingsActivity.class);
+            		startActivityForResult(discoverableIntent,SETTINGS_FOR_MULTI);
                 }
     			break;
     			
@@ -209,8 +220,26 @@ public class MainWindow extends Activity{
     			break;
     			
     		case (SETTINGS_FOR_SINGLE):
-    			if (resultCode != Activity.RESULT_CANCELED)
+    			if (resultCode != Activity.RESULT_CANCELED){
     				startSingleGame();
+    			}
+    			break;
+    			
+    		case (SETTINGS_FOR_MULTI):
+    			if (resultCode != Activity.RESULT_CANCELED){
+    				startServerGame();
+    				
+    			}
+    			break;
+    			
+    		case (USER_SETTINGS_FOR_CLIENT):
+    			if (resultCode != Activity.RESULT_CANCELED);
+    			//	startClientGame();
+    			break;
+    			
+    		case (USER_SETTINGS_FOR_SERVER):
+    			if (resultCode != Activity.RESULT_CANCELED);
+    			//	startServerGame();
     			break;
     	}
     }

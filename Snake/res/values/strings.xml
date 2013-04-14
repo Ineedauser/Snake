@@ -30,5 +30,11 @@
     <string name="adj_skull_probability">Skull probability</string>
     <string name="ok">OK</string>
     <string name="settings_title">Game settings</string>
+    <string name="title_activity_user_list">UserListActivity</string>
+    <string name="map_size">Map size</string>
+    <string name="start_game">Start game</string>
+    <string name="your_user_data">Your user data:</string>
+    <string name="other_users">Other users:</string>
+    <string name="user_settings_title">User settings</string>
 
 </resources>

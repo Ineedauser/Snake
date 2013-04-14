@@ -45,6 +45,10 @@
             android:name="com.szofttech.snake.SettingsActivity"
             android:label="@string/settings_title" >
         </activity>
+        <activity
+            android:name="com.szofttech.snake.UserListActivity"
+            android:label="@string/user_settings_title" >
+        </activity>
     </application>
 
 </manifest>

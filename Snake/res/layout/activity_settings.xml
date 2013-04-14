@@ -50,7 +50,7 @@
             android1:layout_width="match_parent"
             android1:layout_height="wrap_content"
             android1:paddingTop="10dp"
-            android1:text="@string/adj_snake_speed"
+            android1:text="@string/map_size"
             android1:textAppearance="?android:attr/textAppearanceMedium" />
 
         <LinearLayout

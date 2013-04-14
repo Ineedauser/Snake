@@ -26,7 +26,7 @@
         android:layout_alignParentLeft="true" >
 
         <View
-            android:id="@+id/view1"
+            android:id="@+id/userColorEditor"
             android:layout_width="fill_parent"
             android:layout_height="1dp"
             android:background="@android:color/darker_gray" />

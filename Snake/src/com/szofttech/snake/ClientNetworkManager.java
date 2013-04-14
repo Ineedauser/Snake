@@ -10,6 +10,7 @@ import com.szofttech.snake.Snake.Direction;
 public class ClientNetworkManager implements NetworkManager {
 	private static final String TAG="Snake.ClientNetworkManager: ";
 	private static final int TIMEOUT=1500;
+	private static Boolean idAssigned;
 	
 	private void checkId(int id){
 		if ((id<0) || (id>BluetoothServer.MAX_CONNECTIONS))
@@ -49,15 +50,11 @@ public class ClientNetworkManager implements NetworkManager {
 		}
 		
 		private void handleNewUserPacket(UserRegisterPacket up){
-			User u=new User();
-			u.name=up.name;
-			u.color=up.color;
-			u.score=0;
-			
 			checkId(up.id);
 			
 			synchronized(users){
-				users[up.id]=u;
+				users[up.id].name=up.name;
+				users[up.id].color=up.color;
 				
 				userCount=Math.max(userCount, up.id);
 			}
@@ -96,6 +93,10 @@ public class ClientNetworkManager implements NetworkManager {
 			}
 		}
 		
+		private void handleSettingsPacket(GameSettings packet){
+			Game.getInstance().settings.copyFrom(packet);
+		}
+		
 		@Override
 		public void run(){
 			while (running){
@@ -106,6 +107,10 @@ public class ClientNetworkManager implements NetworkManager {
 				
 				if (packet instanceof LoginPacket){
 					localId=((LoginPacket)packet).id;
+					synchronized(idAssigned){
+						idAssigned=true;
+						idAssigned.notify();
+					}
 				} else if (packet instanceof UserRegisterPacket){
 					handleNewUserPacket((UserRegisterPacket)packet);
 				} else if (packet instanceof SnakeMovementPacket){
@@ -116,6 +121,8 @@ public class ClientNetworkManager implements NetworkManager {
 					handleServerFlagPacket((ServerNetworkManager.FlagPacket)packet);
 				} else if (packet instanceof NewObjectPlacement){
 					handleNewObjectPacket((NewObjectPlacement)packet);
+				} else if (packet instanceof GameSettings){
+					handleSettingsPacket((GameSettings)packet);
 				}
 			}
 		}
@@ -245,8 +252,12 @@ public class ClientNetworkManager implements NetworkManager {
 	
 	
 	public ClientNetworkManager(){
+		idAssigned=false;
 		socketError=new boolean[BluetoothServer.MAX_CONNECTIONS];
 		users=new User[BluetoothServer.MAX_CONNECTIONS];
+		for (int a=0; a<users.length; a++){
+			users[a]=new User();
+		}
 		lastDirections=new Direction[BluetoothServer.MAX_CONNECTIONS];
 		directionUpdated=new boolean[BluetoothServer.MAX_CONNECTIONS];
 		newTimeframe=false;

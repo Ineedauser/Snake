@@ -207,9 +207,14 @@ public class ServerNetworkManager implements NetworkManager {
 			}
 		}
 		
+		private void sendSettings(){
+			sendList.add(Game.getInstance().settings);
+		}
+		
 		@Override
 		public void run(){
 			assignSnakeID();
+			sendSettings();
 			sendUsers();
 			
 			/**
