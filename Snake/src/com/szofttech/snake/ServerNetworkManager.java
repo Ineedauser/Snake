@@ -15,7 +15,7 @@ public class ServerNetworkManager implements NetworkManager {
 	private volatile boolean []socketError;
 	private static final long MAX_DIRECTION_TIMEOUT=1000;
 	
-	public static enum FlagPacket{NEW_TIMEFRAME, END_GAME}; 
+	public static enum FlagPacket{NEW_TIMEFRAME, END_GAME, START}; 
 	
 	private void setErrorState(final int id){
 		Log.w(TAG, "Setting error state for socket "+id);
@@ -116,6 +116,18 @@ public class ServerNetworkManager implements NetworkManager {
 			return packet;
 		}
 		
+		private void handleFlagPacket(FlagPacket packet){
+			if (packet.equals(FlagPacket.END_GAME)){
+				Log.w(TAG, "Game ended by user "+id);
+				setErrorState();
+			} else if (packet.equals(FlagPacket.START)){
+				synchronized (gameStarted){
+					gameStarted[id]=true;
+					gameStarted.notify();
+				}
+			}
+		}
+		
 		@Override
 		public void run(){
 			/**
@@ -134,10 +146,7 @@ public class ServerNetworkManager implements NetworkManager {
 				} else if (packet instanceof Snake.Direction){
 					processDirectionPacket((Snake.Direction)packet);
 				} else if (packet instanceof FlagPacket){
-					if (packet.equals(FlagPacket.END_GAME)){
-						Log.w(TAG, "Game ended by user "+id);
-						setErrorState();
-					}
+					handleFlagPacket((FlagPacket)packet);
 				}
 			}
 		}
@@ -268,7 +277,10 @@ public class ServerNetworkManager implements NetworkManager {
 	
 	private volatile User [] users;
 	private volatile Direction [] lastDirections;
+	private volatile Direction [] comittedDirections;
+	private volatile boolean directionComitted;
 	private volatile boolean [] directionUpdated;
+	private volatile boolean [] gameStarted;
 	private volatile int userCount=1;
 	private ObjectPlacementList newObjectList;
 	
@@ -284,13 +296,16 @@ public class ServerNetworkManager implements NetworkManager {
 		sendThreads=new SendThread[BluetoothServer.MAX_CONNECTIONS];
 		users=new User[BluetoothServer.MAX_CONNECTIONS];
 		lastDirections=new Direction[BluetoothServer.MAX_CONNECTIONS];
+		comittedDirections=new Direction[BluetoothServer.MAX_CONNECTIONS];
 		directionUpdated=new boolean[BluetoothServer.MAX_CONNECTIONS];
 		socketError=new boolean[BluetoothServer.MAX_CONNECTIONS];
 		clientSockets=new SnakeBluetoothSocket[BluetoothServer.MAX_CONNECTIONS];
+		gameStarted=new boolean[BluetoothServer.MAX_CONNECTIONS];
 			
 		for (int a=0; a<BluetoothServer.MAX_CONNECTIONS; a++){
 			users[a]=new User();
 			directionUpdated[a]=false;
+			gameStarted[a]=false;
 		}
 		
 		gameTimer=new Timer();
@@ -309,17 +324,26 @@ public class ServerNetworkManager implements NetworkManager {
 	
 	private void processDirectionsOnTimeframeEnd(){
 		synchronized (lastDirections){
-			for (int a=0; a<lastDirections.length; a++){
-				if (directionUpdated[a]==false){
-					setErrorState(a);
-					Log.w(TAG, "Socket "+a+" lost because of timeout.");
-				} else
-					directionUpdated[a]=false;
+			synchronized (comittedDirections){
+				directionComitted=true;
+				for (int a=0; a<lastDirections.length; a++){
+					comittedDirections[a]=lastDirections[a];
+					
+					if (directionUpdated[a]==false){
+						setErrorState(a);
+						Log.w(TAG, "Socket "+a+" lost because of timeout.");
+					} else
+						directionUpdated[a]=false;
+				}
+
+				directionComitted=true;
+				comittedDirections.notify();
+				lastDirections[0]=Snake.Direction.UNCHANGED;
 			}
 		}
 	}
 	
-	public void startGame(long stepTime){
+	private void startGame(long stepTime){
 		frameStartTime=0;
 		gameTimer.scheduleAtFixedRate(new TimerTask(){
 
@@ -351,7 +375,7 @@ public class ServerNetworkManager implements NetworkManager {
 			boolean notReceived=false;
 			synchronized (lastDirections){
 				for (int a=0; a<lastDirections.length; a++){
-					if (directionUpdated[a]==false){
+					if (socketError[a]==false && directionUpdated[a]==false){
 						notReceived=true;
 						break;
 					}
@@ -396,10 +420,28 @@ public class ServerNetworkManager implements NetworkManager {
 	
 	@Override
 	public void getSnakeDirections(Direction[] destionation) {
-		synchronized (lastDirections){
-			for (int a=0; a<userCount; a++)
-				destionation[a]=lastDirections[a];
+		long endTime=System.currentTimeMillis()+MAX_DIRECTION_TIMEOUT;
+		
+		synchronized (comittedDirections){
+			while (!directionComitted){
+				long now=System.currentTimeMillis();
+				
+				if (now>endTime){
+					throw new RuntimeException("Error waiting for directions.");
+				}
+				
+				try {
+					comittedDirections.wait(endTime-now);
+				} catch (InterruptedException e) {
+				}
+			}
+			
+			for (int a=0; a<userCount; a++){
+				destionation[a]=comittedDirections[a];
+			}
 		}
+		
+		
 	}
 
 	@Override
@@ -460,6 +502,47 @@ public class ServerNetworkManager implements NetworkManager {
 		userPacket.color=color;
 		
 		broadcast(userPacket);
+	}
+
+	@Override
+	public boolean waitForGameStart(long timeoutInMills) {
+		long endTime=System.currentTimeMillis()+timeoutInMills;
+		
+		synchronized (gameStarted){
+			boolean started;
+			
+			while (true){
+				started=true;
+				for (int a=0; a<userCount; a++){
+					if (gameStarted[a]==false){
+						started=false;
+						break;
+					}
+				}
+				
+				if (started)
+					return true;
+				
+				long now=System.currentTimeMillis();
+				if (now>=endTime){
+					return false;
+				}
+				
+				
+				try {
+					gameStarted.wait(endTime-now);
+				} catch (InterruptedException e) {
+				}
+			}
+		}
+	}
+
+	@Override
+	public void startLocalGame() {
+		synchronized (gameStarted){
+			gameStarted[0]=true;
+			gameStarted.notify();
+		}
 	}
 
 }

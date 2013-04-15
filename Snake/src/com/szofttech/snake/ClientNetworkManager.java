@@ -12,6 +12,7 @@ public class ClientNetworkManager implements NetworkManager {
 	private static final int TIMEOUT=1500;
 	private static volatile Boolean idLock=true;
 	private static volatile boolean idAssigned=false;
+	private volatile boolean gameStarted=false;
 	
 	private void checkId(int id){
 		if ((id<0) || (id>BluetoothServer.MAX_CONNECTIONS))
@@ -67,6 +68,8 @@ public class ClientNetworkManager implements NetworkManager {
 				checkId(packet.id);
 				lastDirections[packet.id]=packet.direction;
 				directionUpdated[packet.id]=true;
+				
+				lastDirections.notifyAll();
 			}
 		}
 		
@@ -80,8 +83,10 @@ public class ClientNetworkManager implements NetworkManager {
 					synchronized (lastDirections){
 						frameStartTime=System.currentTimeMillis();
 						newTimeframe=true;
+						directionSent=false;
+						gameStarted=true;
+						lastDirections.notifyAll();
 					}
-					lastDirections.notify();
 					break;
 				case END_GAME:
 					//TODO
@@ -172,7 +177,26 @@ public class ClientNetworkManager implements NetworkManager {
 			}
 		}
 		
+		private void sendDummyDirection(){
+			SnakeMovementPacket packet=new SnakeMovementPacket();
+			packet.direction=Snake.Direction.UNCHANGED;
+			packet.id=localId;
+			sendPacket(packet);	
+			
+			Log.w("SNAKE Client", "Sending dummy direction");
+		}
 		
+		private void sendPacket(Object packet){
+			if (packet!=null){
+				try {
+					socket.write(packet);
+					socket.flush();
+				} catch (IOException e) {
+					Log.w(TAG, "I/O error writing socket");
+					setErrorState(localId);
+				}
+			}
+		}
 		
 		@Override
 		public void run(){
@@ -181,30 +205,39 @@ public class ClientNetworkManager implements NetworkManager {
 			 * 
 			 */
 			while (running){
-				Object packet;
+				Object packet=null;
+				
+				long endTime=frameStartTime+(int)(0.7*Game.getInstance().settings.stepTime);
+				long currTime=System.currentTimeMillis();
+				
+				synchronized (lastDirections){
+					if (currTime>=endTime){
+						if (directionSent==false){
+							directionSent=true;
+							sendDummyDirection();
+						}
+					}
+				}
 				
 				synchronized (sendList){
-					while (running && sendList.isEmpty()){
+					if (sendList.isEmpty()){
 						try {
-							sendList.wait(100);
+							
+							if (currTime<endTime)
+								sendList.wait(endTime-currTime);
+							else
+								sendList.wait(100);
 						} catch (InterruptedException e) {
 						}
 					}
 					
-					if (!running){
-						return;
-					}
 					
-					packet=sendList.pop();
+					if (sendList.isEmpty()==false)
+						packet=sendList.pop();
 				}
 				
-				try {
-					socket.write(packet);
-					socket.flush();
-				} catch (IOException e) {
-					Log.w(TAG, "I/O error writing socket");
-					setErrorState(localId);
-				}
+				
+				sendPacket(packet);
 			}
 		}
 	}
@@ -224,6 +257,7 @@ public class ClientNetworkManager implements NetworkManager {
 	private volatile boolean newTimeframe; 
 	private volatile int userCount;
 	private volatile ObjectPlacementList newObjectList;
+	private volatile boolean directionSent;
 	
 	private void setErrorState(int id){
 		Log.w(TAG, "Setting error state.");
@@ -287,6 +321,7 @@ public class ClientNetworkManager implements NetworkManager {
 	@Override
 	public void getSnakeDirections(Direction[] destionation) {
 		if (!waitForTimeframeEnd(TIMEOUT)){
+			Log.w(TAG, "Timeout waiting for server to respond.");
 			setErrorState(localId);
 			return;
 		}
@@ -312,8 +347,15 @@ public class ClientNetworkManager implements NetworkManager {
 	@Override
 	public void putLocalDirection(Direction direction) {
 		synchronized (lastDirections){
+			if (directionSent)
+				return;
+			
+			directionSent=true;
+			
 			lastDirections[localId]=direction;
 			directionUpdated[localId]=true;
+			
+			lastDirections.notifyAll();
 		}
 		
 		SnakeMovementPacket packet=new SnakeMovementPacket();
@@ -391,6 +433,31 @@ public class ClientNetworkManager implements NetworkManager {
 		
 		sendThread.add(userPacket);
 		
+	}
+
+	@Override
+	public boolean waitForGameStart(long timeoutInMills) {
+		long endTime=System.currentTimeMillis()+timeoutInMills;
+		synchronized (lastDirections){
+			while (gameStarted==false){
+				long now=System.currentTimeMillis();
+				if (endTime<=now){
+					return false;
+				}
+				
+				try {
+					lastDirections.wait(endTime-now);
+				} catch (InterruptedException e) {
+				}
+			}
+		}
+		
+		return true;		
+	}
+
+	@Override
+	public void startLocalGame() {
+		sendThread.add(ServerNetworkManager.FlagPacket.START);
 	}
 
 }

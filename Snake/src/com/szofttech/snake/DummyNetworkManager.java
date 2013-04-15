@@ -90,4 +90,15 @@ public class DummyNetworkManager implements NetworkManager {
 		
 	}
 
+
+	@Override
+	public boolean waitForGameStart(long timeoutInMills) {
+		return true;
+	}
+
+
+	@Override
+	public void startLocalGame() {
+	}
+
 }

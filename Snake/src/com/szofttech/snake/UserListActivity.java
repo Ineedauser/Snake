@@ -24,6 +24,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.View.OnClickListener;
 import android.widget.BaseAdapter;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -101,6 +102,8 @@ public class UserListActivity extends Activity {
 	
 	private UserAdapter adapter;
 	
+	private Handler handler;
+	
 	private void setUserData(){
 		Game.getInstance().networkManager.setLocalUserData(username, color);
 	}
@@ -124,6 +127,8 @@ public class UserListActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_user_list);
 		
+		setResult(Activity.RESULT_CANCELED);
+		
 		colorView=(View)findViewById(R.id.userColorEditor);
 		final TextView usernameEditor=(TextView)findViewById(R.id.usernameEditor);
 		
@@ -131,7 +136,7 @@ public class UserListActivity extends Activity {
 		setUserData();
 		
 		colorView.setBackgroundColor(color);
-		usernameEditor.setText(USERNAME_DEFAULT);
+		usernameEditor.setText(username);
 		
 		changeTimer=new Timer();
 		
@@ -200,7 +205,7 @@ public class UserListActivity extends Activity {
 		});
 		
 		
-		final Handler handler = new Handler() {
+		handler = new Handler() {
 
 	        public void handleMessage(Message msg) {
 	        	Log.w(TAG, "User count: "+Game.getInstance().networkManager.getUsetCount());
@@ -225,6 +230,19 @@ public class UserListActivity extends Activity {
 			}
 		
 		}, 0, LIST_REFRESH_INTERVAL);
+		
+		
+		Button startButton=(Button)findViewById(R.id.startGameButton);
+		startButton.setOnClickListener(new OnClickListener(){
+
+			@Override
+			public void onClick(View arg0) {
+				saveSettings();
+				setResult(Activity.RESULT_OK);
+		    	finish();
+			}
+			
+		});
 		
 		
 	}

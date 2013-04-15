@@ -289,7 +289,7 @@ public class GameController extends Thread{
 	
 	private void moveSnakes(){
 		for (int a=0; a<snakes.length; a++){
-			if (!snakes[a].isSnakeValid())
+			if (!snakes[a].isSnakeValid() ||  errors[a]==true)
 				continue;
 			
 			if (skipSteps[a]>0){
@@ -303,9 +303,10 @@ public class GameController extends Thread{
 	
 	private void wallDetect(){
 		for (int a=0; a<snakes.length; a++){
-			if (!snakes[a].isSnakeValid())
+			if ((!snakes[a].isSnakeValid()) || errors[a]==true)
 				continue;
 			
+			Log.w(TAG, "Checking future position of snake "+a+", move direction: "+snakeDirections[a]);
 			Point pos=snakes[a].getFuturePosition(snakeDirections[a]);
 			if (!CoordinateManager.getInstance().isValidPosition(pos)){
 				users[a].score*=KEEP_PERCENT_OF_SCORES_ON_WALL_COLLISION;
@@ -422,6 +423,19 @@ public class GameController extends Thread{
 	}
 	@Override
     public void run(){
+		Log.w(TAG, "Starting local game.");
+		game.networkManager.startLocalGame();
+		
+		Log.w(TAG, "Waiting for game to start!");
+		
+		while (game.networkManager.waitForGameStart(100)==false){
+			if (!running){
+				Log.w(TAG, "Thread stopped wile waiting for game to start.");
+				return;
+			}
+		}
+		
+		Log.w(TAG,"Game started...");
 		
 		while (running){
 			generatePlacements();

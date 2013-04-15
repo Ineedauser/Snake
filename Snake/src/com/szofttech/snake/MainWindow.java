@@ -82,7 +82,7 @@ public class MainWindow extends Activity{
 		
 		Game game=Game.getInstance();
 		game.networkManager=new ServerNetworkManager();
-		game.isServer=true;
+		game.isServer=false;
 		game.context=this;
 		
 		new ConnectToServerThread().execute(dev);
@@ -115,6 +115,11 @@ public class MainWindow extends Activity{
 		startActivityForResult(userSettingsIntent,USER_SETTINGS_FOR_SERVER);
 	}
 	
+	void showGameWindow(){
+		Intent intent = new Intent(getBaseContext(), GameScreen.class);
+    	startActivity(intent);
+	}
+	
 
 	void startSingleGame(){
 		stopServer();
@@ -131,8 +136,7 @@ public class MainWindow extends Activity{
 		game.settings.skullProbability=0.01f;*/
 		game.context=this;
 		
-    	Intent intent = new Intent(getBaseContext(), GameScreen.class);
-    	startActivity(intent);
+		showGameWindow();
 	}
 	
     @Override
@@ -247,12 +251,16 @@ public class MainWindow extends Activity{
     			
     		case (USER_SETTINGS_FOR_CLIENT):
     			if (resultCode != Activity.RESULT_CANCELED);
-    			//	startClientGame();
+    				showGameWindow();
+    		//	startClientGame();
     			break;
     			
     		case (USER_SETTINGS_FOR_SERVER):
     			if (resultCode == Activity.RESULT_CANCELED)
     				stopServer();
+    			else {
+    				showGameWindow();
+    			}
     			//	startServerGame();
     			break;
     	}

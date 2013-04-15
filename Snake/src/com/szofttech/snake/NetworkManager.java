@@ -15,4 +15,6 @@ public interface NetworkManager {
 	public abstract boolean [] getErrorList();
 	
 	public abstract void setLocalUserData(String name, int color);
+	public abstract boolean waitForGameStart(long timeoutInMills);
+	public abstract void startLocalGame();
 }
