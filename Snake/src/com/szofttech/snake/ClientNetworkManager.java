@@ -10,7 +10,8 @@ import com.szofttech.snake.Snake.Direction;
 public class ClientNetworkManager implements NetworkManager {
 	private static final String TAG="Snake.ClientNetworkManager: ";
 	private static final int TIMEOUT=1500;
-	private static Boolean idAssigned;
+	private static volatile Boolean idLock=true;
+	private static volatile boolean idAssigned=false;
 	
 	private void checkId(int id){
 		if ((id<0) || (id>BluetoothServer.MAX_CONNECTIONS))
@@ -50,13 +51,14 @@ public class ClientNetworkManager implements NetworkManager {
 		}
 		
 		private void handleNewUserPacket(UserRegisterPacket up){
+			Log.w(TAG, "User data for user "+up.id+" received");
 			checkId(up.id);
 			
 			synchronized(users){
 				users[up.id].name=up.name;
 				users[up.id].color=up.color;
 				
-				userCount=Math.max(userCount, up.id);
+				userCount=Math.max(userCount, up.id+1);
 			}
 		}
 		
@@ -94,23 +96,31 @@ public class ClientNetworkManager implements NetworkManager {
 		}
 		
 		private void handleSettingsPacket(GameSettings packet){
+			Log.w(TAG, "Game settings packet received.");
 			Game.getInstance().settings.copyFrom(packet);
+		}
+		
+		private void handleLoginPacket(LoginPacket packet){
+			Log.w(TAG, "Login packet received. Local id is "+packet.id);
+			localId=packet.id;
+			userCount=localId+1;
+			synchronized(idLock){
+				idAssigned=true;
+				idLock.notify();
+			}
 		}
 		
 		@Override
 		public void run(){
 			while (running){
+				Log.w(TAG, "Waiting for network packet...");
 				Object packet=receiveObject();
 				
 				if (packet==null)
 					return;
 				
 				if (packet instanceof LoginPacket){
-					localId=((LoginPacket)packet).id;
-					synchronized(idAssigned){
-						idAssigned=true;
-						idAssigned.notify();
-					}
+					handleLoginPacket((LoginPacket)packet);
 				} else if (packet instanceof UserRegisterPacket){
 					handleNewUserPacket((UserRegisterPacket)packet);
 				} else if (packet instanceof SnakeMovementPacket){
@@ -146,6 +156,7 @@ public class ClientNetworkManager implements NetworkManager {
 		
 		public SendThread(){
 			running=true;
+			sendList=new LinkedList<Object> ();
 		}
 		
 		public void stopMe(){
@@ -251,7 +262,7 @@ public class ClientNetworkManager implements NetworkManager {
 	}
 	
 	
-	public ClientNetworkManager(){
+	public ClientNetworkManager(BluetoothClientSocket socket){
 		idAssigned=false;
 		socketError=new boolean[BluetoothServer.MAX_CONNECTIONS];
 		users=new User[BluetoothServer.MAX_CONNECTIONS];
@@ -263,6 +274,14 @@ public class ClientNetworkManager implements NetworkManager {
 		newTimeframe=false;
 		userCount=1;
 		newObjectList=new ObjectPlacementList();
+		this.socket=socket;
+		
+		sendThread=new SendThread();
+		receiveThread=new ReceiveThread();
+	
+		receiveThread.start();
+		sendThread.start();
+		
 	}
 
 	@Override
@@ -326,6 +345,52 @@ public class ClientNetworkManager implements NetworkManager {
 	@Override
 	public boolean[] getErrorList() {
 		return socketError;
+	}
+
+	@Override
+	public int getUsetCount() {
+		return userCount;
+	}
+	
+	public boolean waitForLocalId(int timeout){
+		long endTime=System.currentTimeMillis()+timeout;
+		synchronized (idLock){
+			while (idAssigned==false){
+				long now=System.currentTimeMillis();
+				if (endTime<=now){
+					return false;
+				}
+				
+				try {
+					idLock.wait(endTime-now);
+				} catch (InterruptedException e) {
+				}
+			}
+		}
+		
+		return true;
+	}
+
+	@Override
+	public void setLocalUserData(String name, int color) {
+		Log.w(TAG, "setLocalUserData() called");
+		if (waitForLocalId(TIMEOUT)==false)
+			throw new RuntimeException("Server not responding.");
+		
+		Log.w(TAG, "Setting local user data. Local user ID is "+localId);
+		
+		UserRegisterPacket userPacket=new UserRegisterPacket();
+		synchronized (users){
+			users[localId].name=name;
+			users[localId].color=color;
+		}
+		
+		userPacket.id=localId;
+		userPacket.name=name;
+		userPacket.color=color;
+		
+		sendThread.add(userPacket);
+		
 	}
 
 }

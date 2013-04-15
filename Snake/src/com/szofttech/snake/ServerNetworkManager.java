@@ -11,9 +11,9 @@ import com.szofttech.snake.Snake.Direction;
 
 public class ServerNetworkManager implements NetworkManager {
 	private final String TAG="Snake.ServerNetworkManager";
-	public volatile SnakeBluetoothSocket []clientSockets;
-	public volatile boolean []socketError;
-	public static final long MAX_DIRECTION_TIMEOUT=1000;
+	private volatile SnakeBluetoothSocket []clientSockets;
+	private volatile boolean []socketError;
+	private static final long MAX_DIRECTION_TIMEOUT=1000;
 	
 	public static enum FlagPacket{NEW_TIMEFRAME, END_GAME}; 
 	
@@ -64,7 +64,7 @@ public class ServerNetworkManager implements NetworkManager {
 		
 		private void broadcastExceptMe(Object o){
 			synchronized (users){
-				for (int a=0; a<userCount; a++){
+				for (int a=1	; a<userCount; a++){
 					if (a!=id){
 						sendThreads[a].add(o);
 					}
@@ -73,11 +73,10 @@ public class ServerNetworkManager implements NetworkManager {
 		}
 		
 		private void processNewUserPacket(UserRegisterPacket userPacket){
+			Log.w("Snake server","New user packet. User name: "+userPacket.name);
 			synchronized (users){
-				users[id]=new User();
 				users[id].name=userPacket.name;
 				users[id].color=userPacket.color;
-				users[id].score=0;					
 				Log.w(TAG, "User data received about user "+id+" with name: \""+users[id].name+"\"");
 			}
 			
@@ -101,15 +100,18 @@ public class ServerNetworkManager implements NetworkManager {
 		private Object receiveObject(){
 			Object packet=null;
 			
-			try {
-				packet=clientSockets[id].read();
-			} catch (IOException e) {
-				Log.e(TAG, "I/O Exception reading socket");
-				setErrorState();
-			} catch (ClassNotFoundException e) {
-				Log.e(TAG, "Class not found exception on network socket");
-				setErrorState();
-			}
+			//while (packet==null){
+				try {
+					packet=clientSockets[id].read();
+				} catch (IOException e) {
+					Log.e(TAG, "I/O Exception reading socket");
+					e.printStackTrace();
+					setErrorState();
+				} catch (ClassNotFoundException e) {
+					Log.e(TAG, "Class not found exception on network socket");
+					setErrorState();
+				}
+			//}
 			
 			return packet;
 		}
@@ -125,6 +127,7 @@ public class ServerNetworkManager implements NetworkManager {
 				
 				if (packet==null)
 					break;		
+				Log.w("Snake server", "Packet received from user");
 				
 				if (packet instanceof UserRegisterPacket){
 					processNewUserPacket((UserRegisterPacket)packet);
@@ -160,6 +163,7 @@ public class ServerNetworkManager implements NetworkManager {
 		public SendThread(final int id){
 			running=true;
 			this.id=id;
+			sendList=new LinkedList<Object>();
 		}
 		
 		public void stopMe(){
@@ -187,7 +191,8 @@ public class ServerNetworkManager implements NetworkManager {
 				clientSockets[id].write(p);
 				clientSockets[id].flush();
 			} catch (IOException e1) {
-				Log.w(TAG, "I/O Exception reading socket");
+				Log.w(TAG, "I/O Exception writing socket");
+				e1.printStackTrace();
 				setErrorState(id);
 			}
 		}
@@ -213,9 +218,13 @@ public class ServerNetworkManager implements NetworkManager {
 		
 		@Override
 		public void run(){
+			Log.w(TAG, "Assigning snake ID...");
 			assignSnakeID();
+			Log.w(TAG, "Sending game settings...");
 			sendSettings();
+			Log.w(TAG, "Sending user list...");
 			sendUsers();
+			Log.w(TAG, "Done. Sending regular objects...");
 			
 			/**
 			 * Process packets received from client.
@@ -242,8 +251,10 @@ public class ServerNetworkManager implements NetworkManager {
 				try {
 					clientSockets[id].write(packet);
 					clientSockets[id].flush();
+					Log.w(TAG, "Object sent...");
 				} catch (IOException e) {
 					Log.w(TAG, "I/O error writing socket for user "+id);
+					e.printStackTrace();
 					setErrorState(id);
 				}
 			}
@@ -274,9 +285,11 @@ public class ServerNetworkManager implements NetworkManager {
 		users=new User[BluetoothServer.MAX_CONNECTIONS];
 		lastDirections=new Direction[BluetoothServer.MAX_CONNECTIONS];
 		directionUpdated=new boolean[BluetoothServer.MAX_CONNECTIONS];
+		socketError=new boolean[BluetoothServer.MAX_CONNECTIONS];
+		clientSockets=new SnakeBluetoothSocket[BluetoothServer.MAX_CONNECTIONS];
 			
 		for (int a=0; a<BluetoothServer.MAX_CONNECTIONS; a++){
-			users[a]=null;
+			users[a]=new User();
 			directionUpdated[a]=false;
 		}
 		
@@ -372,6 +385,7 @@ public class ServerNetworkManager implements NetworkManager {
 			
 			receiveThreads[id]=tr;
 			sendThreads[id]=ts;
+			clientSockets[id]=socket;
 			
 			socketError[id]=false;
 		}
@@ -426,6 +440,26 @@ public class ServerNetworkManager implements NetworkManager {
 	@Override
 	public boolean[] getErrorList() {
 		return socketError;
+	}
+	
+	@Override
+	public int getUsetCount() {
+		return userCount;
+	}
+
+	@Override
+	public void setLocalUserData(String name, int color) {
+		UserRegisterPacket userPacket=new UserRegisterPacket();
+		synchronized (users){
+			users[0].name=name;
+			users[0].color=color;
+		}
+		
+		userPacket.id=0;
+		userPacket.name=name;
+		userPacket.color=color;
+		
+		broadcast(userPacket);
 	}
 
 }

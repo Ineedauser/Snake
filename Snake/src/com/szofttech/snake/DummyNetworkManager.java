@@ -22,7 +22,7 @@ public class DummyNetworkManager implements NetworkManager {
 		users[0]= new User();
 		
 		users[0].name="Local";
-		users[0].color=new GLColor(Color.RED);
+		users[0].color=Color.RED;
 		
 		lastDirection=Direction.UNCHANGED;
 		
@@ -72,6 +72,22 @@ public class DummyNetworkManager implements NetworkManager {
 	@Override
 	public boolean[] getErrorList() {
 		return socketError;
+	}
+
+
+	@Override
+	public int getUsetCount() {
+		return 1;
+	}
+
+
+	@Override
+	public void setLocalUserData(String name, int color) {
+		synchronized (users){
+			users[0].name=name;
+			users[0].color=color;
+		}
+		
 	}
 
 }

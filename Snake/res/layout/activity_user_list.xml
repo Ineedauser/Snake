@@ -31,9 +31,10 @@
 
             <EditText
                 android:id="@+id/usernameEditor"
-                android:layout_width="202dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="20dp"
+                android:layout_weight="0.48"
                 android:ems="10" />
 
             <View
@@ -42,7 +43,6 @@
                 android:layout_height="34dp"
                 android:layout_marginLeft="20dp"
                 android:background="#ffff0000" />
-
         </LinearLayout>
 
         <TextView
@@ -53,7 +53,7 @@
             android:textAppearance="?android:attr/textAppearanceMedium" />
 
         <ListView
-            android:id="@+id/listView1"
+            android:id="@+id/userList"
             android:layout_width="match_parent"
             android:layout_height="match_parent" >
         </ListView>

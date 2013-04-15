@@ -34,7 +34,6 @@ public class MainWindow extends Activity{
 	BluetoothServer server;
 	
 	private ProgressDialog busyDialog;
-	private ClientNetworkManager clientNetworkManager;
 	
 	
 	
@@ -60,6 +59,10 @@ public class MainWindow extends Activity{
 				Helpers.showErrorMessage(MainWindow.this, R.string.server_connect_failed_message, R.string.failed_to_connect_title);
 			} else {
 				Log.w("                 SNAKE             ","Connected.");
+				Game.getInstance().networkManager=new ClientNetworkManager(socket);
+				Log.w("                 SNAKE             ","ClientNetworkManager created...");
+				Intent userSettingsIntent = new Intent(getBaseContext(), UserListActivity.class);
+				startActivityForResult(userSettingsIntent,USER_SETTINGS_FOR_CLIENT);
 				//clientNetworkManager=new ClientNetworkManager();
 				//clientNetworkManager.login(socket);
 			}
@@ -76,9 +79,13 @@ public class MainWindow extends Activity{
 	
 	void startClientGame(BluetoothDevice dev){
 		stopServer();
-		//new ConnectToServerThread().execute(dev);
-		Intent userSettingsIntent = new Intent(getBaseContext(), UserListActivity.class);
-		startActivityForResult(userSettingsIntent,USER_SETTINGS_FOR_CLIENT);
+		
+		Game game=Game.getInstance();
+		game.networkManager=new ServerNetworkManager();
+		game.isServer=true;
+		game.context=this;
+		
+		new ConnectToServerThread().execute(dev);
 	}
 	
 	void showClientListWindow(){
@@ -95,8 +102,14 @@ public class MainWindow extends Activity{
 	
 	void startServerGame(){
 		stopServer();
-	/*	server=new BluetoothServer();
-		server.startListening();*/
+		
+		Game game=Game.getInstance();
+		game.networkManager=new ServerNetworkManager();
+		game.isServer=true;
+		game.context=this;
+		
+		server=new BluetoothServer();
+		server.startListening();
 		
 		Intent userSettingsIntent = new Intent(getBaseContext(), UserListActivity.class);
 		startActivityForResult(userSettingsIntent,USER_SETTINGS_FOR_SERVER);
@@ -238,7 +251,8 @@ public class MainWindow extends Activity{
     			break;
     			
     		case (USER_SETTINGS_FOR_SERVER):
-    			if (resultCode != Activity.RESULT_CANCELED);
+    			if (resultCode == Activity.RESULT_CANCELED)
+    				stopServer();
     			//	startServerGame();
     			break;
     	}

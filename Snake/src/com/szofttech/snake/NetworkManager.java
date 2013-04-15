@@ -10,6 +10,9 @@ public interface NetworkManager {
 	public abstract ObjectPlacementList getNewObjects();
 	
 	public abstract User [] getUserList();
+	public abstract int getUsetCount();
 	
 	public abstract boolean [] getErrorList();
+	
+	public abstract void setLocalUserData(String name, int color);
 }
