@@ -25,7 +25,9 @@ public class GameController extends Thread{
 	private boolean [] errors;
 	private static final int SNAKE_DEAD_DELAY_MS=2000;
 	private static final int SNAKE_START_DELAY_MS=500;
+	private final int userCount;
 	
+	private static final long TIMEOUT=1000;
 	private static float KEEP_PERCENT_OF_SCORES_ON_WALL_COLLISION=0.8f;
 	
 	private int starCount;
@@ -45,13 +47,15 @@ public class GameController extends Thread{
 		game=Game.getInstance();
 		running=true;
 		
+		userCount=Game.getInstance().networkManager.getUsetCount();
+		
 		random=new Random(System.currentTimeMillis());
 		starRandom=new Random(System.currentTimeMillis()+Math.round(random.nextFloat()*100.0f));
 		skullRandom=new Random(System.currentTimeMillis()+Math.round(random.nextFloat()*100.0f));
 		
 		collectables=new CollectableList();
 		
-		errors=new boolean[BluetoothServer.MAX_CONNECTIONS];
+		errors=new boolean[userCount];
 		for (int a=0; a<errors.length; a++)
 			errors[a]=false;
 			
@@ -63,12 +67,12 @@ public class GameController extends Thread{
 		game.renderer.addRenderable(g);
 		users=game.networkManager.getUserList();
 		
-		snakes=new Snake[users.length];
-		snakeDirections=new Snake.Direction[users.length];
-		deadSnakeDelays=new int[users.length];
-		skipSteps=new int[users.length];
-		growSnakes=new boolean[users.length];
-		fruitsNeeded=users.length;
+		snakes=new Snake[userCount];
+		snakeDirections=new Snake.Direction[userCount];
+		deadSnakeDelays=new int[userCount];
+		skipSteps=new int[userCount];
+		growSnakes=new boolean[userCount];
+		fruitsNeeded=userCount;
 		skullCount=0;
 		starCount=0;
 		for (int a=0; a<snakes.length; a++){
@@ -375,22 +379,7 @@ public class GameController extends Thread{
 		}
 	}
 	
-	private void waitForNewTimeframe(){
-		long endTime=game.networkManager.getFrameStartTimeInMills()+game.settings.stepTime;
-		
-		while (true){
-			long time=System.currentTimeMillis();
-			
-			if (time>=endTime){
-				break;
-			}
-			
-			try {
-				Thread.sleep(endTime-time);
-			} catch (InterruptedException e) {
-			}
-		}
-	}
+	
 	
 	private void decreaseCollectableCount(final Collectable c){
 		if (c instanceof Star)
@@ -437,22 +426,32 @@ public class GameController extends Thread{
 		
 		Log.w(TAG,"Game started...");
 		
+		long timeframe=0;
 		while (running){
 			generatePlacements();
 			
 			
-			waitForNewTimeframe();
+			if (!game.networkManager.waitForFrameEnd(TIMEOUT+game.settings.stepTime)){
+				throw new RuntimeException("New timeframe not received...");
+			}
 			
+			Log.w(TAG, "End of timeframe "+timeframe);
 			
-		
-			game.networkManager.getSnakeDirections(snakeDirections);
-			handleDeadConnections();
-			removeTimedOutCollectables();
-			updateDeadSnakeDelays();
-			//generatePlacements();
+			if (timeframe!=0){
+				game.networkManager.getSnakeDirections(snakeDirections);
+				handleDeadConnections();
+				removeTimedOutCollectables();
+				updateDeadSnakeDelays();
+			}
+				//generatePlacements();
 			mergeNewObjects();
-			collisionDetect();
-			moveSnakes();
+			
+			if (timeframe!=0){
+				collisionDetect();
+				moveSnakes();
+			}
+			
+			timeframe++;
 		}
     }
 }

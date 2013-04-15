@@ -15,6 +15,7 @@ public class DummyNetworkManager implements NetworkManager {
 	private ObjectPlacementList objects;
 	private User [] users;
 	private boolean [] socketError;
+	private long frameStartTime;
 	
 	public DummyNetworkManager(){
 		objects = new ObjectPlacementList();
@@ -44,11 +45,6 @@ public class DummyNetworkManager implements NetworkManager {
 		
 		destionation[0]=lastDirection;
 		lastDirection=Direction.UNCHANGED;
-	}
-
-	@Override
-	public long getFrameStartTimeInMills() {
-		return System.currentTimeMillis();
 	}
 
 	@Override
@@ -99,6 +95,40 @@ public class DummyNetworkManager implements NetworkManager {
 
 	@Override
 	public void startLocalGame() {
+		frameStartTime=System.currentTimeMillis();
 	}
 
+
+	@Override
+	public boolean waitForFrameEnd(long timeoutInMills) {
+		long endTime=frameStartTime+Game.getInstance().settings.stepTime;
+		long now=System.currentTimeMillis();
+		boolean result;
+		
+		if (endTime<now+timeoutInMills){
+			result=true;
+		} else {
+			endTime=now+timeoutInMills;
+			result=false;
+		}
+		
+		
+		while (true){
+			now=System.currentTimeMillis();
+			if (now >= endTime)
+				break;
+			else {
+				try {
+					Thread.sleep(endTime-now);
+				} catch (InterruptedException e) {
+				}
+			}
+		}
+		
+		if (result){
+			frameStartTime=now+Game.getInstance().settings.stepTime;
+		}
+		return result;
+		
+	}
 }

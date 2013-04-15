@@ -22,12 +22,14 @@ public class ServerNetworkManager implements NetworkManager {
 		
 		socketError[id]=true;
 
-		receiveThreads[id].stopMe();
-		sendThreads[id].stopMe();
-		
-		try {
-			clientSockets[id].close();
-		} catch (IOException e) {
+		if (id!=0){
+			receiveThreads[id].stopMe();
+			sendThreads[id].stopMe();
+			
+			try {
+				clientSockets[id].close();
+			} catch (IOException e) {
+			}
 		}
 		
 		ClientDisconnectPacket packet=new ClientDisconnectPacket();
@@ -84,6 +86,8 @@ public class ServerNetworkManager implements NetworkManager {
 		}
 		
 		private void processDirectionPacket(Direction d){
+			
+			Log.w(TAG, "Direction packet received from user "+id);
 			synchronized (lastDirections){
 				lastDirections[id]=d;
 				directionUpdated[id]=true;
@@ -286,7 +290,8 @@ public class ServerNetworkManager implements NetworkManager {
 	
 	private Timer gameTimer;
 	private volatile long frameStartTime;
-	
+	private volatile Object frameEndSyncObject;
+	private volatile boolean frameEnded=false;
 	
 	
 	
@@ -301,6 +306,7 @@ public class ServerNetworkManager implements NetworkManager {
 		socketError=new boolean[BluetoothServer.MAX_CONNECTIONS];
 		clientSockets=new SnakeBluetoothSocket[BluetoothServer.MAX_CONNECTIONS];
 		gameStarted=new boolean[BluetoothServer.MAX_CONNECTIONS];
+		frameEndSyncObject=new Object();
 			
 		for (int a=0; a<BluetoothServer.MAX_CONNECTIONS; a++){
 			users[a]=new User();
@@ -315,21 +321,31 @@ public class ServerNetworkManager implements NetworkManager {
 		synchronized (users){
 			for (int a=1; a<userCount; a++){
 				if (users[a]!=null && socketError[a]==false){
+					Log.w(TAG,"Sending broadcast message to "+a);
 					sendThreads[a].add(o);
 				}
 			}
 		}
 	}
 	
+	private void sendLocalDirection(){
+		Log.w(TAG, "Broadcasting local direction");
+		SnakeMovementPacket packet=new SnakeMovementPacket();
+		packet.direction=lastDirections[0];
+		packet.id=0;
+		broadcast(packet);
+	}
 	
 	private void processDirectionsOnTimeframeEnd(){
 		synchronized (lastDirections){
 			synchronized (comittedDirections){
+				sendLocalDirection();
+				
 				directionComitted=true;
 				for (int a=0; a<lastDirections.length; a++){
 					comittedDirections[a]=lastDirections[a];
 					
-					if (directionUpdated[a]==false){
+					if ((directionUpdated[a]==false) && (a!=0)){
 						setErrorState(a);
 						Log.w(TAG, "Socket "+a+" lost because of timeout.");
 					} else
@@ -356,6 +372,11 @@ public class ServerNetworkManager implements NetworkManager {
 				frameStartTime=System.currentTimeMillis();
 				
 				broadcast(FlagPacket.NEW_TIMEFRAME);
+				
+				synchronized (frameEndSyncObject){
+					frameEnded=true;
+					frameEndSyncObject.notify();
+				}
 			}
 			
 		}, 0, stepTime);
@@ -380,16 +401,17 @@ public class ServerNetworkManager implements NetworkManager {
 						break;
 					}
 				}
+			
+			
+			
+				if (notReceived){
+					try {
+						lastDirections.wait(endTime-System.currentTimeMillis());
+					} catch (InterruptedException e) {
+					}
+				} else
+					return true;
 			}
-			
-			
-			if (notReceived){
-				try {
-					lastDirections.wait(endTime-System.currentTimeMillis());
-				} catch (InterruptedException e) {
-				}
-			} else
-				return true;			
 		}
 			
 		return false;
@@ -452,10 +474,6 @@ public class ServerNetworkManager implements NetworkManager {
 		}		
 	}
 
-	@Override
-	public long getFrameStartTimeInMills() {
-		return frameStartTime;
-	}
 
 	@Override
 	public void putNewObjects(NewObjectPlacement... object) {
@@ -542,6 +560,33 @@ public class ServerNetworkManager implements NetworkManager {
 		synchronized (gameStarted){
 			gameStarted[0]=true;
 			gameStarted.notify();
+		}
+		
+		startGame(Game.getInstance().settings.stepTime);
+	}
+
+	@Override
+	public boolean waitForFrameEnd(long timeoutInMills) {
+		long endTime=System.currentTimeMillis()+timeoutInMills;
+		
+		synchronized (frameEndSyncObject){
+			while (true){
+				if (frameEnded){
+					frameEnded=false;
+					return true;
+				}
+				
+				long now=System.currentTimeMillis();
+				if (now>=endTime){
+					return false;
+				}
+				
+				
+				try {
+					frameEndSyncObject.wait(endTime-now);
+				} catch (InterruptedException e) {
+				}
+			}
 		}
 	}
 

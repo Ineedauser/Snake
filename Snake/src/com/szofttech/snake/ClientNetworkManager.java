@@ -14,6 +14,9 @@ public class ClientNetworkManager implements NetworkManager {
 	private static volatile boolean idAssigned=false;
 	private volatile boolean gameStarted=false;
 	
+	private volatile Object frameEndSyncObject;
+	private volatile boolean frameEnded=false;
+	
 	private void checkId(int id){
 		if ((id<0) || (id>BluetoothServer.MAX_CONNECTIONS))
 			throw new RuntimeException("User ID out of range!");
@@ -64,6 +67,7 @@ public class ClientNetworkManager implements NetworkManager {
 		}
 		
 		private void handleSnakeMovementPacket(SnakeMovementPacket packet){
+			Log.w(TAG, "Direction packet received from snake "+packet.id);
 			synchronized (lastDirections){
 				checkId(packet.id);
 				lastDirections[packet.id]=packet.direction;
@@ -80,6 +84,7 @@ public class ClientNetworkManager implements NetworkManager {
 		private void handleServerFlagPacket(ServerNetworkManager.FlagPacket packet){
 			switch (packet){
 				case NEW_TIMEFRAME:
+					Log.w(TAG, "New timeframe packet received");
 					synchronized (lastDirections){
 						frameStartTime=System.currentTimeMillis();
 						newTimeframe=true;
@@ -87,6 +92,8 @@ public class ClientNetworkManager implements NetworkManager {
 						gameStarted=true;
 						lastDirections.notifyAll();
 					}
+					
+					notifyFrameEnd();
 					break;
 				case END_GAME:
 					//TODO
@@ -298,6 +305,7 @@ public class ClientNetworkManager implements NetworkManager {
 	
 	public ClientNetworkManager(BluetoothClientSocket socket){
 		idAssigned=false;
+		frameEndSyncObject=new Object();
 		socketError=new boolean[BluetoothServer.MAX_CONNECTIONS];
 		users=new User[BluetoothServer.MAX_CONNECTIONS];
 		for (int a=0; a<users.length; a++){
@@ -321,16 +329,17 @@ public class ClientNetworkManager implements NetworkManager {
 	@Override
 	public void getSnakeDirections(Direction[] destionation) {
 		if (!waitForTimeframeEnd(TIMEOUT)){
-			Log.w(TAG, "Timeout waiting for server to respond.");
-			setErrorState(localId);
-			return;
+			throw new RuntimeException("Server not starting new timeframe.");
+			//Log.w(TAG, "Timeout waiting for server to respond.");
+			//setErrorState(localId);
+			//return;
 		}
 		
 		synchronized (lastDirections){
 			for (int a=0; a<userCount; a++){
 				if (socketError[a]==false){
 					if (directionUpdated[a]==false){
-						throw new RuntimeException("Inconsistent system state. Protocol error.");
+						throw new RuntimeException("Inconsistent system state. Protocol error. Direction "+a+" not updated!");
 					}
 					
 					directionUpdated[a]=false;
@@ -364,10 +373,6 @@ public class ClientNetworkManager implements NetworkManager {
 		sendThread.add(packet);		
 	}
 
-	@Override
-	public long getFrameStartTimeInMills() {
-		return frameStartTime;
-	}
 
 	@Override
 	public void putNewObjects(NewObjectPlacement... object) {
@@ -458,6 +463,38 @@ public class ClientNetworkManager implements NetworkManager {
 	@Override
 	public void startLocalGame() {
 		sendThread.add(ServerNetworkManager.FlagPacket.START);
+	}
+
+	private void notifyFrameEnd(){
+		synchronized (frameEndSyncObject){
+			frameEnded=true;
+			frameEndSyncObject.notify();
+		}
+	}
+	
+	@Override
+	public boolean waitForFrameEnd(long timeoutInMills) {
+		long endTime=System.currentTimeMillis()+timeoutInMills;
+		
+		synchronized (frameEndSyncObject){
+			while (true){
+				if (frameEnded){
+					frameEnded=false;
+					return true;
+				}
+				
+				long now=System.currentTimeMillis();
+				if (now>=endTime){
+					return false;
+				}
+				
+				
+				try {
+					frameEndSyncObject.wait(endTime-now);
+				} catch (InterruptedException e) {
+				}
+			}
+		}
 	}
 
 }
