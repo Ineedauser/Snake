@@ -66,8 +66,8 @@ public class ServerNetworkManager implements NetworkManager {
 		
 		private void broadcastExceptMe(Object o){
 			synchronized (users){
-				for (int a=1	; a<userCount; a++){
-					if (a!=id){
+				for (int a=1; a<userCount; a++){
+					if (socketError[a]==false && a!=id){
 						sendThreads[a].add(o);
 					}
 				}
@@ -93,6 +93,7 @@ public class ServerNetworkManager implements NetworkManager {
 				directionUpdated[id]=true;
 				lastDirections.notify();
 			}
+			Log.w(TAG, "Updated flag set for id "+id);
 			
 			
 			SnakeMovementPacket movement=new SnakeMovementPacket();
@@ -366,12 +367,20 @@ public class ServerNetworkManager implements NetworkManager {
 
 			@Override
 			public void run() {
+				long time=System.currentTimeMillis();
 				if (frameStartTime!=0){
-					waitForDirections(MAX_DIRECTION_TIMEOUT);
+					boolean sucsess=waitForDirections(MAX_DIRECTION_TIMEOUT);
+					for (int a=0; a<userCount; a++)
+						Log.w(TAG, "User "+a+" reported: "+directionUpdated[a]);
 					processDirectionsOnTimeframeEnd();
+					
+					if (!sucsess)
+						throw new RuntimeException("Some of the snakes not reported their direction");
+					
 				}
 				frameStartTime=System.currentTimeMillis();
 				
+				Log.w(TAG,  "Waited for client directions "+(frameStartTime-time)+"ms");
 				broadcast(FlagPacket.NEW_TIMEFRAME);
 				
 				synchronized (frameEndSyncObject){
@@ -396,7 +405,7 @@ public class ServerNetworkManager implements NetworkManager {
 		while (endTime>System.currentTimeMillis()){
 			boolean notReceived=false;
 			synchronized (lastDirections){
-				for (int a=0; a<lastDirections.length; a++){
+				for (int a=1; a<userCount; a++){
 					if (socketError[a]==false && directionUpdated[a]==false){
 						notReceived=true;
 						break;
@@ -563,6 +572,7 @@ public class ServerNetworkManager implements NetworkManager {
 			gameStarted.notify();
 		}
 		
+		Log.w(TAG, "Starting game with step time "+Game.getInstance().settings.stepTime);
 		startGame(Game.getInstance().settings.stepTime);
 	}
 

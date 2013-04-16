@@ -95,6 +95,7 @@ public class ClientNetworkManager implements NetworkManager {
 					}
 					
 					notifyFrameEnd();
+					sendThread.newTimeframeNotify();
 					break;
 				case END_GAME:
 					//TODO
@@ -189,6 +190,16 @@ public class ClientNetworkManager implements NetworkManager {
 			}
 		}
 		
+		public void newTimeframeNotify(){
+			//This is needed because there are timeounts based on the
+			//frame beginning time. If frame beginning time is changed, the
+			//timeout is also needed to be changed.
+			synchronized (sendList){
+				Log.w(TAG, "Notifying sendList");
+				sendList.notify();
+			}
+		}
+		
 		private void sendDummyDirection(){
 			sendPacket(Snake.Direction.UNCHANGED);	
 			
@@ -219,6 +230,7 @@ public class ClientNetworkManager implements NetworkManager {
 				long endTime=frameStartTime+(int)(0.7*Game.getInstance().settings.stepTime);
 				long currTime=System.currentTimeMillis();
 				
+				Log.w(TAG, "Checking when we need to send dummy direction");
 				synchronized (lastDirections){
 					if (currTime>=endTime){
 						if (directionSent==false){
@@ -360,8 +372,10 @@ public class ClientNetworkManager implements NetworkManager {
 	@Override
 	public void putLocalDirection(Direction direction) {
 		synchronized (lastDirections){
-			if (directionSent)
+			if (directionSent){
+				Log.w(TAG, "Trying to set local direction, but it's already set.");
 				return;
+			}
 			
 			directionSent=true;
 			
@@ -371,7 +385,7 @@ public class ClientNetworkManager implements NetworkManager {
 			lastDirections.notifyAll();
 		}
 		
-		Log.w(TAG, "Sending local direction.");
+		Log.w(TAG, "Sending local direction: "+direction);
 		SnakeMovementPacket packet=new SnakeMovementPacket();
 		packet.direction=direction;
 		packet.id=localId;
