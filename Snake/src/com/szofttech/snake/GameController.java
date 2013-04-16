@@ -1,6 +1,7 @@
 package com.szofttech.snake;
 
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Random;
 
 import android.graphics.Color;
@@ -177,8 +178,8 @@ public class GameController extends Thread{
 					ObjectPool.getInstance().putPoint(wallNormal);					
 				}
 				
-				NewObjectPlacement p1=ObjectPool.getInstance().getNewObjectPlacement();
-				NewObjectPlacement p2=ObjectPool.getInstance().getNewObjectPlacement();
+				NewObjectPlacement p1=new NewObjectPlacement();
+				NewObjectPlacement p2=new NewObjectPlacement();
 				
 				
 				p1.position.set(p.x, p.y);
@@ -203,7 +204,7 @@ public class GameController extends Thread{
 	private void placeOnRandomCoordinate(NewObjectPlacement.Type type, int minDistanceSquared){
 		Point p=getRandomPlacement(minDistanceSquared);
 		
-		NewObjectPlacement fruit=ObjectPool.getInstance().getNewObjectPlacement();
+		NewObjectPlacement fruit=new NewObjectPlacement();
 		fruit.type=type;
 		fruit.user=0;
 		fruit.position.set(p.x, p.y);
@@ -247,7 +248,7 @@ public class GameController extends Thread{
 	
 	private void mergeNewObjects(){
 		
-		ObjectPlacementList newObjects=game.networkManager.getNewObjects();
+		LinkedList<NewObjectPlacement> newObjects=game.networkManager.getNewObjects();
 		
 		while (!newObjects.isEmpty()){
 			NewObjectPlacement o=newObjects.pop();
@@ -284,7 +285,6 @@ public class GameController extends Thread{
 					break;
 			}
 			
-			ObjectPool.getInstance().putNewObjectPlacement(o);
 		}
 	}
 	

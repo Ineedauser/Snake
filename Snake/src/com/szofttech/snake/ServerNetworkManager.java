@@ -287,7 +287,7 @@ public class ServerNetworkManager implements NetworkManager {
 	private volatile boolean [] directionUpdated;
 	private volatile boolean [] gameStarted;
 	private volatile int userCount=1;
-	private ObjectPlacementList newObjectList;
+	private LinkedList<NewObjectPlacement> newObjectList;
 	
 	private Timer gameTimer;
 	private volatile long frameStartTime;
@@ -297,7 +297,7 @@ public class ServerNetworkManager implements NetworkManager {
 	
 	
 	public ServerNetworkManager(){
-		newObjectList=new ObjectPlacementList();
+		newObjectList=new LinkedList<NewObjectPlacement>();
 		receiveThreads=new ReceiveThread[BluetoothServer.MAX_CONNECTIONS];
 		sendThreads=new SendThread[BluetoothServer.MAX_CONNECTIONS];
 		users=new User[BluetoothServer.MAX_CONNECTIONS];
@@ -498,7 +498,7 @@ public class ServerNetworkManager implements NetworkManager {
 	}
 
 	@Override
-	public ObjectPlacementList getNewObjects() {
+	public LinkedList<NewObjectPlacement> getNewObjects() {
 		return newObjectList;		
 	}
 

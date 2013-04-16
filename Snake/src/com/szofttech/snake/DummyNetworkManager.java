@@ -12,13 +12,13 @@ import com.szofttech.snake.Snake.Direction;
  */
 public class DummyNetworkManager implements NetworkManager {
 	private Direction lastDirection;
-	private ObjectPlacementList objects;
+	private LinkedList<NewObjectPlacement> objects;
 	private User [] users;
 	private boolean [] socketError;
 	private long frameStartTime;
 	
 	public DummyNetworkManager(){
-		objects = new ObjectPlacementList();
+		objects = new LinkedList<NewObjectPlacement>();
 		users = new User[1];
 		users[0]= new User();
 		
@@ -54,7 +54,7 @@ public class DummyNetworkManager implements NetworkManager {
 	}
 
 	@Override
-	public ObjectPlacementList getNewObjects() {
+	public LinkedList<NewObjectPlacement> getNewObjects() {
 		return objects;
 	}
 

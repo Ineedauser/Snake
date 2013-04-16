@@ -7,7 +7,6 @@ import android.graphics.Point;
 
 public class ObjectPool {
 	private LinkedList <Point> pointPool;
-	private LinkedList <NewObjectPlacement> newObjectPlacementPool;
 	private LinkedList <Fruit> fruitPool;
 	private LinkedList <Skull> skullPool;
 	private LinkedList <Star> starPool;
@@ -16,7 +15,6 @@ public class ObjectPool {
 	
 	private ObjectPool(){
 		pointPool=new LinkedList<Point>();
-		newObjectPlacementPool=new LinkedList<NewObjectPlacement>();
 		fruitPool=new LinkedList<Fruit>();
 		skullPool=new LinkedList<Skull>();
 		starPool=new LinkedList<Star>();
@@ -47,18 +45,6 @@ public class ObjectPool {
 	}
 	
 
-	
-	public NewObjectPlacement getNewObjectPlacement(){
-		if (newObjectPlacementPool.isEmpty()){
-			return new NewObjectPlacement();
-		} else
-			return newObjectPlacementPool.pop();
-	}
-	
-	
-	public void putNewObjectPlacement(NewObjectPlacement p){
-		newObjectPlacementPool.addFirst(p);
-	}
 	
 	
 	public Fruit getFruit(final Context appContext){
@@ -112,7 +98,6 @@ public class ObjectPool {
 	
 	void clear(){
 		pointPool.clear();
-		newObjectPlacementPool.clear();
 		fruitPool.clear();
 		skullPool.clear();
 		starPool.clear();

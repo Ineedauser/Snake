@@ -277,7 +277,7 @@ public class ClientNetworkManager implements NetworkManager {
 	private volatile long frameStartTime;
 	private volatile boolean newTimeframe; 
 	private volatile int userCount;
-	private volatile ObjectPlacementList newObjectList;
+	private volatile LinkedList<NewObjectPlacement> newObjectList;
 	private volatile boolean directionSent;
 	
 	private void setErrorState(int id){
@@ -329,7 +329,7 @@ public class ClientNetworkManager implements NetworkManager {
 		directionUpdated=new boolean[BluetoothServer.MAX_CONNECTIONS];
 		newTimeframe=false;
 		userCount=1;
-		newObjectList=new ObjectPlacementList();
+		newObjectList=new LinkedList<NewObjectPlacement>();
 		this.socket=socket;
 		
 		sendThread=new SendThread();
@@ -396,7 +396,7 @@ public class ClientNetworkManager implements NetworkManager {
 	}
 
 	@Override
-	public ObjectPlacementList getNewObjects() {
+	public LinkedList<NewObjectPlacement> getNewObjects() {
 		return newObjectList;
 	}
 
