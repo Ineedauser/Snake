@@ -386,10 +386,7 @@ public class ClientNetworkManager implements NetworkManager {
 		}
 		
 		Log.w(TAG, "Sending local direction: "+direction);
-		SnakeMovementPacket packet=new SnakeMovementPacket();
-		packet.direction=direction;
-		packet.id=localId;
-		sendThread.add(packet);		
+		sendThread.add(direction);		
 	}
 
 
