@@ -27,7 +27,7 @@ public class GameController extends Thread{
 	private static final int SNAKE_START_DELAY_MS=500;
 	private final int userCount;
 	
-	private static final long TIMEOUT=1000;
+	private static final long TIMEOUT=2000;
 	private static float KEEP_PERCENT_OF_SCORES_ON_WALL_COLLISION=0.8f;
 	
 	private int starCount;
@@ -151,14 +151,16 @@ public class GameController extends Thread{
 				
 				Point p=getRandomPlacement(3*3);
 				
-				int dx=0;
-				int dy=0;
+				int dx;
+				int dy;
 				boolean swapPoints=false;
 				
 			
 				if (random.nextBoolean()==false){
 					dx=random.nextInt(2)*2-1;
+					dy=0;
 				} else {
+					dx=0;
 					dy=random.nextInt(2)*2-1;
 				}
 			
@@ -403,7 +405,7 @@ public class GameController extends Thread{
 
 	private void handleDeadConnections(){
 		boolean[] errors=game.networkManager.getErrorList();
-		for (int a=0; a<errors.length; a++){
+		for (int a=0; a<userCount; a++){
 			if (errors[a]!=this.errors[a] && errors[a]==true){
 				game.renderer.removeRenderable(snakes[a]);
 				this.errors[a]=true;

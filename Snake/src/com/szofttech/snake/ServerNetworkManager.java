@@ -306,6 +306,7 @@ public class ServerNetworkManager implements NetworkManager {
 		socketError=new boolean[BluetoothServer.MAX_CONNECTIONS];
 		clientSockets=new SnakeBluetoothSocket[BluetoothServer.MAX_CONNECTIONS];
 		gameStarted=new boolean[BluetoothServer.MAX_CONNECTIONS];
+		lastDirections[0]=Snake.Direction.UNCHANGED;
 		frameEndSyncObject=new Object();
 			
 		for (int a=0; a<BluetoothServer.MAX_CONNECTIONS; a++){
@@ -342,7 +343,7 @@ public class ServerNetworkManager implements NetworkManager {
 				sendLocalDirection();
 				
 				directionComitted=true;
-				for (int a=0; a<lastDirections.length; a++){
+				for (int a=0; a<userCount; a++){
 					comittedDirections[a]=lastDirections[a];
 					
 					if ((directionUpdated[a]==false) && (a!=0)){

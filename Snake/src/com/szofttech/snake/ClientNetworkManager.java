@@ -9,7 +9,7 @@ import com.szofttech.snake.Snake.Direction;
 
 public class ClientNetworkManager implements NetworkManager {
 	private static final String TAG="Snake.ClientNetworkManager: ";
-	private static final int TIMEOUT=1500;
+	private static final int TIMEOUT=2000;
 	private static volatile Boolean idLock=true;
 	private static volatile boolean idAssigned=false;
 	private volatile boolean gameStarted=false;
@@ -84,9 +84,10 @@ public class ClientNetworkManager implements NetworkManager {
 		private void handleServerFlagPacket(ServerNetworkManager.FlagPacket packet){
 			switch (packet){
 				case NEW_TIMEFRAME:
-					Log.w(TAG, "New timeframe packet received");
+					long now=System.currentTimeMillis();
+					Log.w(TAG, "New timeframe packet received. Delta: "+(now-frameStartTime)+", step time: "+Game.getInstance().settings.stepTime);
 					synchronized (lastDirections){
-						frameStartTime=System.currentTimeMillis();
+						frameStartTime=now;
 						newTimeframe=true;
 						directionSent=false;
 						gameStarted=true;
@@ -119,6 +120,10 @@ public class ClientNetworkManager implements NetworkManager {
 			synchronized(idLock){
 				idAssigned=true;
 				idLock.notify();
+			}
+			
+			synchronized(lastDirections){
+				lastDirections[localId]=Snake.Direction.UNCHANGED;
 			}
 		}
 		
@@ -185,12 +190,9 @@ public class ClientNetworkManager implements NetworkManager {
 		}
 		
 		private void sendDummyDirection(){
-			SnakeMovementPacket packet=new SnakeMovementPacket();
-			packet.direction=Snake.Direction.UNCHANGED;
-			packet.id=localId;
-			sendPacket(packet);	
+			sendPacket(Snake.Direction.UNCHANGED);	
 			
-			Log.w("SNAKE Client", "Sending dummy direction");
+			Log.w("SNAKE Client", "Sending dummy direction. Frame time is "+(System.currentTimeMillis()-frameStartTime));
 		}
 		
 		private void sendPacket(Object packet){
@@ -338,7 +340,7 @@ public class ClientNetworkManager implements NetworkManager {
 		synchronized (lastDirections){
 			for (int a=0; a<userCount; a++){
 				if (socketError[a]==false){
-					if (directionUpdated[a]==false){
+					if ((directionUpdated[a]==false) && (a!=localId)){
 						throw new RuntimeException("Inconsistent system state. Protocol error. Direction "+a+" not updated!");
 					}
 					
@@ -348,6 +350,8 @@ public class ClientNetworkManager implements NetworkManager {
 			
 			for (int a=0; a<userCount; a++)
 				destionation[a]=lastDirections[a];
+			
+			lastDirections[localId]=Snake.Direction.UNCHANGED;
 		}
 		
 
@@ -367,6 +371,7 @@ public class ClientNetworkManager implements NetworkManager {
 			lastDirections.notifyAll();
 		}
 		
+		Log.w(TAG, "Sending local direction.");
 		SnakeMovementPacket packet=new SnakeMovementPacket();
 		packet.direction=direction;
 		packet.id=localId;
