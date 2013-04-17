@@ -106,6 +106,8 @@ public class ClientNetworkManager implements NetworkManager {
 				case END_GAME:
 					//TODO
 					break;
+				default:
+					break;
 			}
 		}
 		

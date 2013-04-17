@@ -1,7 +1,5 @@
 package com.szofttech.snake;
 
-import java.util.Random;
-
 import android.content.Context;
 
 public class Fruit extends Collectable{	
