@@ -30,7 +30,8 @@ public class Fruit extends Collectable{
 	}
 
 	@Override
-	public void setTimeout(Random random) {
+	public void setTimeout(int timeout) {
 	}
+
 
 }

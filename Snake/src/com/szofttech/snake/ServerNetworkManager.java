@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import android.util.Log;
 
@@ -16,6 +17,8 @@ public class ServerNetworkManager implements NetworkManager {
 	private static final long MAX_DIRECTION_TIMEOUT=1000;
 	
 	public static enum FlagPacket{NEW_TIMEFRAME, END_GAME, START}; 
+	
+	private volatile AtomicInteger gameTime;
 	
 	private void setErrorState(final int id){
 		Log.w(TAG, "Setting error state for socket "+id);
@@ -309,6 +312,8 @@ public class ServerNetworkManager implements NetworkManager {
 		gameStarted=new boolean[BluetoothServer.MAX_CONNECTIONS];
 		lastDirections[0]=Snake.Direction.UNCHANGED;
 		frameEndSyncObject=new Object();
+		
+		gameTime=new AtomicInteger(0);
 			
 		for (int a=0; a<BluetoothServer.MAX_CONNECTIONS; a++){
 			users[a]=new User();
@@ -367,6 +372,8 @@ public class ServerNetworkManager implements NetworkManager {
 
 			@Override
 			public void run() {
+				gameTime.incrementAndGet();
+				
 				long time=System.currentTimeMillis();
 				if (frameStartTime!=0){
 					boolean sucsess=waitForDirections(MAX_DIRECTION_TIMEOUT);
@@ -599,6 +606,11 @@ public class ServerNetworkManager implements NetworkManager {
 				}
 			}
 		}
+	}
+
+	@Override
+	public int getGameTime() {
+		return gameTime.get();
 	}
 
 }

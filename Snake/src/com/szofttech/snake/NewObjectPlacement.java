@@ -21,7 +21,7 @@ public class NewObjectPlacement implements Serializable {
 	
 	public Type type;
 	public Point position=null;
-	public int user;
+	public int extra;
 	
 	public NewObjectPlacement(){
 		position=new Point();
@@ -29,7 +29,7 @@ public class NewObjectPlacement implements Serializable {
 	
 	private void writeObject(ObjectOutputStream oos) throws IOException {
 		oos.writeObject(type);
-		oos.writeInt(user);
+		oos.writeInt(extra);
 		oos.writeInt(position.x);
 		oos.writeInt(position.y);
 	}
@@ -37,7 +37,7 @@ public class NewObjectPlacement implements Serializable {
 	
 	private void readObject(ObjectInputStream ois) throws IOException, ClassNotFoundException {
 		type=(Type)ois.readObject();
-		user=ois.readInt();
+		extra=ois.readInt();
 		if (position==null)
 			position=new Point();
 		position.x=ois.readInt();

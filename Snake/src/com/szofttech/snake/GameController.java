@@ -183,11 +183,11 @@ public class GameController extends Thread{
 				
 				
 				p1.position.set(p.x, p.y);
-				p1.user=a;
+				p1.extra=a;
 				p1.type=NewObjectPlacement.Type.SNAKE;
 				
 				p2.position.set(p.x+dx, p.y+dy);
-				p2.user=a;
+				p2.extra=a;
 				p2.type=NewObjectPlacement.Type.SNAKE;
 				
 
@@ -201,12 +201,23 @@ public class GameController extends Thread{
 		}
 	}
 	
+	private int getNewTimeoutForType(NewObjectPlacement.Type type){
+		switch (type){
+			case SKULL:
+				return Skull.generateTimeout(random);
+			case STAR:
+				return Star.generateTimeout(random);
+			default:
+				return 0;
+		}
+	}
+	
 	private void placeOnRandomCoordinate(NewObjectPlacement.Type type, int minDistanceSquared){
 		Point p=getRandomPlacement(minDistanceSquared);
 		
 		NewObjectPlacement fruit=new NewObjectPlacement();
 		fruit.type=type;
-		fruit.user=0;
+		fruit.extra=getNewTimeoutForType(type);
 		fruit.position.set(p.x, p.y);
 		
 		game.networkManager.putNewObjects(fruit);
@@ -255,9 +266,9 @@ public class GameController extends Thread{
 			
 			switch (o.type){
 				case SNAKE:
-					snakes[o.user].addPoint(o.position);
-					snakes[o.user].setDead(false);
-					skipSteps[o.user]=SNAKE_START_DELAY_MS/game.settings.stepTime;
+					snakes[o.extra].addPoint(o.position);
+					snakes[o.extra].setDead(false);
+					skipSteps[o.extra]=SNAKE_START_DELAY_MS/game.settings.stepTime;
 					break;
 				case FRUIT:
 					Fruit f=ObjectPool.getInstance().getFruit(game.context);
@@ -268,7 +279,7 @@ public class GameController extends Thread{
 				case SKULL:
 					Skull s=ObjectPool.getInstance().getSkull(game.context);
 					s.setPosition(o.position);
-					s.setTimeout(random);
+					s.setTimeout(o.extra);
 					game.renderer.addRenderable(s);
 					collectables.add(s);
 					skullCount++;
@@ -276,7 +287,7 @@ public class GameController extends Thread{
 				case STAR:
 					Star star=ObjectPool.getInstance().getStar(game.context);
 					star.setPosition(o.position);
-					star.setTimeout(random);
+					star.setTimeout(o.extra);
 					game.renderer.addRenderable(star);
 					collectables.add(star);
 					starCount++;
@@ -428,7 +439,6 @@ public class GameController extends Thread{
 		
 		Log.w(TAG,"Game started...");
 		
-		long timeframe=0;
 		while (running){
 			generatePlacements();
 			
@@ -437,9 +447,10 @@ public class GameController extends Thread{
 				throw new RuntimeException("New timeframe not received...");
 			}
 			
+			int timeframe=Game.getInstance().networkManager.getGameTime();
 			Log.w(TAG, "End of timeframe "+timeframe);
 			
-			if (timeframe!=0){
+			if (timeframe>1){
 				game.networkManager.getSnakeDirections(snakeDirections);
 				handleDeadConnections();
 				removeTimedOutCollectables();
@@ -448,7 +459,7 @@ public class GameController extends Thread{
 				//generatePlacements();
 			mergeNewObjects();
 			
-			if (timeframe!=0){
+			if (timeframe>1){
 				collisionDetect();
 				moveSnakes();
 			}

@@ -2,6 +2,7 @@ package com.szofttech.snake;
 
 import java.io.IOException;
 import java.util.LinkedList;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import android.util.Log;
 
@@ -16,6 +17,8 @@ public class ClientNetworkManager implements NetworkManager {
 	
 	private volatile Object frameEndSyncObject;
 	private volatile boolean frameEnded=false;
+	
+	private volatile AtomicInteger gameTime;
 	
 	private void checkId(int id){
 		if ((id<0) || (id>BluetoothServer.MAX_CONNECTIONS))
@@ -85,6 +88,8 @@ public class ClientNetworkManager implements NetworkManager {
 			switch (packet){
 				case NEW_TIMEFRAME:
 					long now=System.currentTimeMillis();
+					gameTime.incrementAndGet();
+					
 					Log.w(TAG, "New timeframe packet received. Delta: "+(now-frameStartTime)+", step time: "+Game.getInstance().settings.stepTime);
 					synchronized (lastDirections){
 						frameStartTime=now;
@@ -93,6 +98,7 @@ public class ClientNetworkManager implements NetworkManager {
 						gameStarted=true;
 						lastDirections.notifyAll();
 					}
+					
 					
 					notifyFrameEnd();
 					sendThread.newTimeframeNotify();
@@ -331,9 +337,13 @@ public class ClientNetworkManager implements NetworkManager {
 		userCount=1;
 		newObjectList=new LinkedList<NewObjectPlacement>();
 		this.socket=socket;
+
+		
+		gameTime=new AtomicInteger(0);
 		
 		sendThread=new SendThread();
 		receiveThread=new ReceiveThread();
+		
 	
 		receiveThread.start();
 		sendThread.start();
@@ -511,6 +521,11 @@ public class ClientNetworkManager implements NetworkManager {
 				}
 			}
 		}
+	}
+
+	@Override
+	public int getGameTime() {
+		return gameTime.get();
 	}
 
 }

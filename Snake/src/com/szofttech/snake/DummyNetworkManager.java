@@ -17,6 +17,8 @@ public class DummyNetworkManager implements NetworkManager {
 	private boolean [] socketError;
 	private long frameStartTime;
 	
+	private int gameTime=0;
+	
 	public DummyNetworkManager(){
 		objects = new LinkedList<NewObjectPlacement>();
 		users = new User[1];
@@ -127,8 +129,15 @@ public class DummyNetworkManager implements NetworkManager {
 		
 		if (result){
 			frameStartTime=now+Game.getInstance().settings.stepTime;
+			gameTime++;
 		}
 		return result;
 		
+	}
+
+
+	@Override
+	public int getGameTime() {
+		return gameTime;
 	}
 }

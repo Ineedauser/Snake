@@ -3,6 +3,7 @@ package com.szofttech.snake;
 import java.util.Random;
 
 import android.content.Context;
+import android.util.Log;
 
 public class Star extends Collectable{
 	private static final int MIN_DISPLAYED_TIME=5000;
@@ -32,12 +33,18 @@ public class Star extends Collectable{
 	
 	@Override
 	public boolean isTimedOut() {
-		return System.currentTimeMillis()>=timeout;
+		return Game.getInstance().networkManager.getGameTime()>timeout;
 	}
 
+	public static int generateTimeout(Random random) {
+		return (int) ((MIN_DISPLAYED_TIME + random.nextInt(MAX_DISPLAYED_TIME - MIN_DISPLAYED_TIME + 1))/Game.getInstance().settings.stepTime);	
+	}
+
+
 	@Override
-	public void setTimeout(Random random) {
-		timeout=System.currentTimeMillis() + MIN_DISPLAYED_TIME + random.nextInt(MAX_DISPLAYED_TIME - MIN_DISPLAYED_TIME + 1);	
+	public void setTimeout(int timeout) {
+		Log.w("Snake", "Setting timeout to "+timeout);
+		this.timeout=Game.getInstance().networkManager.getGameTime()+timeout;
 	}
 
 }
