@@ -15,6 +15,7 @@ public class GameController extends Thread{
 	private final int MAX_SKULLS=10;
 	private final int MAX_STARS=10;
 	
+	private Point [] snakeFuturePosition;
 	private Snake [] snakes;
 	private User [] users;
 	private Snake.Direction [] snakeDirections;
@@ -73,6 +74,7 @@ public class GameController extends Thread{
 		deadSnakeDelays=new int[userCount];
 		skipSteps=new int[userCount];
 		growSnakes=new boolean[userCount];
+		snakeFuturePosition=new Point[userCount];
 		fruitsNeeded=userCount;
 		skullCount=0;
 		starCount=0;
@@ -80,6 +82,7 @@ public class GameController extends Thread{
 			snakes[a]=new Snake(game.context);
 			snakes[a].setColor(users[a].color);
 			snakes[a].setDead(true);
+			snakeFuturePosition[a]=null;
 			game.renderer.addRenderable(snakes[a]);
 			
 			deadSnakeDelays[a]=0;
@@ -324,8 +327,7 @@ public class GameController extends Thread{
 				continue;
 			
 			Log.w(TAG, "Checking future position of snake "+a+", move direction: "+snakeDirections[a]);
-			Point pos=snakes[a].getFuturePosition(snakeDirections[a]);
-			if (!CoordinateManager.getInstance().isValidPosition(pos)){
+			if (!CoordinateManager.getInstance().isValidPosition(snakeFuturePosition[a])){
 				users[a].score*=KEEP_PERCENT_OF_SCORES_ON_WALL_COLLISION;
 				dieSnake(a);
 			}
@@ -346,11 +348,7 @@ public class GameController extends Thread{
 			
 			growSnakes[a]=false;
 			
-			Point nextPos=snakes[a].getFuturePosition(snakeDirections[a]);
-			Collectable collected=collectables.findByPos(nextPos);
-			
-			ObjectPool.getInstance().putPoint(nextPos);
-			
+			Collectable collected=collectables.findByPos(snakeFuturePosition[a]);
 			
 			boolean dead=false;
 			
@@ -372,6 +370,19 @@ public class GameController extends Thread{
 				}
 			}
 			
+		}
+	}
+	
+	private void getSnakeFuturePositions(){
+		for (int a=0; a<snakes.length; a++){
+			if (snakes[a].isDead() || errors[a]==true)
+				continue;
+			
+			if (snakeFuturePosition[a]!=null){
+				ObjectPool.getInstance().putPoint(snakeFuturePosition[a]);
+			}
+			
+			snakeFuturePosition[a]=snakes[a].getFuturePosition(snakeDirections[a]);
 		}
 	}
 	
@@ -452,6 +463,7 @@ public class GameController extends Thread{
 			
 			if (timeframe>1){
 				game.networkManager.getSnakeDirections(snakeDirections);
+				getSnakeFuturePositions();
 				handleDeadConnections();
 				removeTimedOutCollectables();
 				updateDeadSnakeDelays();
