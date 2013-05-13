@@ -214,6 +214,10 @@ public class ServerNetworkManager implements NetworkManager {
 		private void sendUsers(){
 			synchronized (users){
 				for (int a=0; a<userCount; a++){
+					//Az eppen bejelentkezo usernek ne kuldjuk el, hogy o kicsoda.
+					if (a==id)
+						continue;
+					
 					UserRegisterPacket packet=new UserRegisterPacket();
 					packet.color=users[a].color;
 					packet.name=users[a].name;
