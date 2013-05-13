@@ -58,7 +58,7 @@ public class GameController extends Thread{
 		collectables=new CollectableList();
 		
 		errors=new boolean[userCount];
-		for (int a=0; a<errors.length; a++)
+		for (int a=0; a<userCount; a++)
 			errors[a]=false;
 			
 		
@@ -78,7 +78,7 @@ public class GameController extends Thread{
 		fruitsNeeded=userCount;
 		skullCount=0;
 		starCount=0;
-		for (int a=0; a<snakes.length; a++){
+		for (int a=0; a<userCount; a++){
 			snakes[a]=new Snake(game.context);
 			snakes[a].setColor(users[a].color);
 			snakes[a].setDead(true);
@@ -93,7 +93,7 @@ public class GameController extends Thread{
 	private int getSnakeSquaredDistances(final Point p){
 		int minDistance=Integer.MAX_VALUE;
 		
-		for (int a=0; a<snakes.length; a++){
+		for (int a=0; a<userCount; a++){
 			minDistance=Math.min(minDistance, snakes[a].getDistanceSquared(p));
 		}
 		
@@ -148,7 +148,7 @@ public class GameController extends Thread{
 	}
 	
 	private void placeDeadSnakes(){
-		for (int a=0; a<snakes.length; a++){
+		for (int a=0; a<userCount; a++){
 			if (snakes[a].isDead() && errors[a]==false){
 				if (deadSnakeDelays[a]!=0)
 					continue;
@@ -308,7 +308,7 @@ public class GameController extends Thread{
 	}
 	
 	private void moveSnakes(){
-		for (int a=0; a<snakes.length; a++){
+		for (int a=0; a<userCount; a++){
 			if (!snakes[a].isSnakeValid() ||  errors[a]==true)
 				continue;
 			
@@ -322,8 +322,8 @@ public class GameController extends Thread{
 	}
 	
 	private void wallDetect(){
-		for (int a=0; a<snakes.length; a++){
-			if ((!snakes[a].isSnakeValid()) || errors[a]==true)
+		for (int a=0; a<userCount; a++){
+			if ((!snakes[a].isSnakeValid()) || errors[a]==true || snakeFuturePosition[a]==null)
 				continue;
 			
 			Log.w(TAG, "Checking future position of snake "+a+", move direction: "+snakeDirections[a]);
@@ -342,8 +342,8 @@ public class GameController extends Thread{
 	
 	
 	private void collectableDetect(){
-		for (int a=0; a<snakes.length; a++){
-			if (snakes[a].isDead() || errors[a]==true)
+		for (int a=0; a<userCount; a++){
+			if (snakes[a].isDead() || errors[a]==true || snakeFuturePosition[a]==null)
 				continue;
 			
 			growSnakes[a]=false;
@@ -374,12 +374,14 @@ public class GameController extends Thread{
 	}
 	
 	private void getSnakeFuturePositions(){
-		for (int a=0; a<snakes.length; a++){
-			if (snakes[a].isDead() || errors[a]==true)
-				continue;
-			
+		for (int a=0; a<userCount; a++){
 			if (snakeFuturePosition[a]!=null){
 				ObjectPool.getInstance().putPoint(snakeFuturePosition[a]);
+			}
+			
+			if (snakes[a].isDead() || errors[a]==true){
+				snakeFuturePosition[a]=null;
+				continue;
 			}
 			
 			snakeFuturePosition[a]=snakes[a].getFuturePosition(snakeDirections[a]);
@@ -392,7 +394,7 @@ public class GameController extends Thread{
 	}
 	
 	void updateDeadSnakeDelays(){
-		for (int a=0; a<snakes.length; a++){
+		for (int a=0; a<userCount; a++){
 			if (deadSnakeDelays[a]==0 || errors[a]==true)
 				continue;
 						
