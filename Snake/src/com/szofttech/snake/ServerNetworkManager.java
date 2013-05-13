@@ -43,7 +43,6 @@ public class ServerNetworkManager implements NetworkManager {
 	/**
 	 * This is thread for receiving packets from clients.
 	 * 
-	 * @author xdever
 	 *
 	 */
 	private class ReceiveThread extends Thread{
@@ -163,8 +162,6 @@ public class ServerNetworkManager implements NetworkManager {
 	/**
 	 * This is a simple thread plus an object queue for sending packets to
 	 * clients.
-	 * 
-	 * @author xdever
 	 *
 	 */
 	private class SendThread extends Thread{
@@ -419,8 +416,6 @@ public class ServerNetworkManager implements NetworkManager {
 					}
 				}
 			
-			
-			
 				if (notReceived){
 					try {
 						lastDirections.wait(endTime-System.currentTimeMillis());
@@ -539,8 +534,8 @@ public class ServerNetworkManager implements NetworkManager {
 		broadcast(userPacket);
 	}
 
-	@Override
-	public boolean waitForGameStart(long timeoutInMills) {
+	
+	private boolean waitForGameStartInternal(long timeoutInMills, int startIndex){
 		long endTime=System.currentTimeMillis()+timeoutInMills;
 		
 		synchronized (gameStarted){
@@ -548,7 +543,7 @@ public class ServerNetworkManager implements NetworkManager {
 			
 			while (true){
 				started=true;
-				for (int a=0; a<userCount; a++){
+				for (int a=startIndex; a<userCount; a++){
 					if (gameStarted[a]==false){
 						started=false;
 						break;
@@ -571,6 +566,11 @@ public class ServerNetworkManager implements NetworkManager {
 			}
 		}
 	}
+	
+	@Override
+	public boolean waitForGameStart(long timeoutInMills) {
+		return waitForGameStartInternal(timeoutInMills,0);
+	}
 
 	@Override
 	public void startLocalGame() {
@@ -578,6 +578,8 @@ public class ServerNetworkManager implements NetworkManager {
 			gameStarted[0]=true;
 			gameStarted.notify();
 		}
+		
+		while (waitForGameStartInternal(1000,1)==false);
 		
 		Log.w(TAG, "Starting game with step time "+Game.getInstance().settings.stepTime);
 		startGame(Game.getInstance().settings.stepTime);
